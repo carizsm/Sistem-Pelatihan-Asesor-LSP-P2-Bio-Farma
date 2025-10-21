@@ -10,12 +10,14 @@ return new class extends Migration
     {
         Schema::create('quiz_attempts', function (Blueprint $table) {
             $table->id(); 
-            $table->unsignedBigInteger('registration_id');
             $table->enum('type', ['pre-test', 'post-test']);
             $table->decimal('score', 5, 2)->nullable();
-            $table->timestamps();
 
-            $table->foreign('registration_id')->references('id')->on('registrations');
+            $table->foreignId('registration_id')
+                  ->constrained('registrations')
+                  ->onDelete('cascade');
+
+            $table->timestamps();
         });
     }
 

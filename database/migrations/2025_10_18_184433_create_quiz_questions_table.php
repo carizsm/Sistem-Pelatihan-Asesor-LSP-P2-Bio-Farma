@@ -10,12 +10,14 @@ return new class extends Migration
     {
         Schema::create('quiz_questions', function (Blueprint $table) {
             $table->id();                         
-            $table->unsignedBigInteger('tna_id');
             $table->text('question');
             $table->unsignedTinyInteger('question_number'); 
-            $table->timestamps();
 
-            $table->foreign('tna_id')->references('id')->on('tnas');
+            $table->foreignId('tna_id')
+                  ->constrained('tnas')
+                  ->onDelete('cascade');
+
+            $table->timestamps();
         });
     }
 

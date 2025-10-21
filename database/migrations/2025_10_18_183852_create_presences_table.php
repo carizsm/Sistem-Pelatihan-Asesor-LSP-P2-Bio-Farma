@@ -10,18 +10,18 @@ return new class extends Migration
     {
         Schema::create('presences', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('registration_id')->unique(); 
-            $table->dateTime('clock_in')->nullable(); 
-            $table->dateTime('clock_out')->nullable(); 
-            $table->timestamps(); 
+            $table->dateTime('clock_in')->nullable();
+            $table->dateTime('clock_out')->nullable();
 
-            $table->foreign('registration_id')->references('id')->on('registrations');
+            $table->foreignId('registration_id')
+                  ->unique()
+                  ->constrained('registrations')
+                  ->onDelete('cascade');
+
+            $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('presences');

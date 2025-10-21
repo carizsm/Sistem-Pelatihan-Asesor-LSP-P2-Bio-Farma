@@ -10,10 +10,7 @@ return new class extends Migration
     {
         Schema::create('feedback_results', function (Blueprint $table) {
             $table->id();
-
-            $table->unsignedBigInteger('registration_id')->unique();
             $table->date('feedback_date');
-
             $table->unsignedTinyInteger('score_01');
             $table->unsignedTinyInteger('score_02');
             $table->unsignedTinyInteger('score_03');
@@ -30,10 +27,12 @@ return new class extends Migration
             $table->unsignedTinyInteger('score_14');
             $table->unsignedTinyInteger('score_15');
 
-            $table->timestamps();
+            $table->foreignId('registration_id')
+                  ->unique()
+                  ->constrained('registrations')
+                  ->onDelete('cascade');
 
-            $table->foreign('registration_id')->references('id')->on('registrations');
- 
+            $table->timestamps();
         });
     }
 

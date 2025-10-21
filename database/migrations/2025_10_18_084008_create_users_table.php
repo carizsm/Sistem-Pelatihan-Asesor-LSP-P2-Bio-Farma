@@ -14,9 +14,21 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('nik', 10)->unique(); 
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->enum('role', ['admin', 'trainee']);
+            
+            $table->foreignId('position_id')
+                  ->nullable()
+                  ->constrained('positions')
+                  ->onDelete('set null');
+            $table->foreignId('unit_id')
+                  ->nullable()
+                  ->constrained('units')
+                  ->onDelete('set null');
+            
             $table->rememberToken();
             $table->timestamps();
         });

@@ -10,20 +10,22 @@ return new class extends Migration
     {
         Schema::create('trainee_answers', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('quiz_attempt_id');
-            $table->unsignedBigInteger('quiz_question_id');
-            $table->unsignedBigInteger('quiz_answer_id');
-            $table->timestamps();
 
-            $table->foreign('quiz_attempt_id')->references('id')->on('quiz_attempts');
-            $table->foreign('quiz_question_id')->references('id')->on('quiz_questions');
-            $table->foreign('quiz_answer_id')->references('id')->on('quiz_answers');
+            $table->foreignId('quiz_attempt_id')
+                ->constrained('quiz_attempts')
+                ->onDelete('cascade');
+            $table->foreignId('quiz_question_id')
+                ->constrained('quiz_questions')
+                ->onDelete('cascade');
+            $table->foreignId('quiz_answer_id')
+                ->constrained('quiz_answers')
+                ->onDelete('cascade');
+
+            $table->timestamps();
+            $table->unique(['quiz_attempt_id', 'quiz_question_id']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('trainee_answers');
