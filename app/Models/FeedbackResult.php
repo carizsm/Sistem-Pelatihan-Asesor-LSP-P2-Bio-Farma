@@ -25,14 +25,15 @@ class FeedbackResult extends Model
         'score_12' => 'integer',
         'score_13' => 'integer',
         'score_14' => 'integer',
-        'score_15' => 'integer'
+        'score_15' => 'integer',
     ];
 
     protected $fillable = [
         'feedback_date', 'score_01', 'score_02', 'score_03', 
         'score_04', 'score_05', 'score_06', 'score_07',
         'score_08', 'score_09', 'score_10', 'score_11',
-        'score_12', 'score_13', 'score_14', 'score_15'
+        'score_12', 'score_13', 'score_14', 'score_15',
+        'registration_id',
     ];
 
     public function registration(): BelongsTo

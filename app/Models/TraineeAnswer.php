@@ -9,6 +9,12 @@ class TraineeAnswer extends Model
 {
     protected $table = 'trainee_answers';
 
+    protected $fillable = [
+        'quiz_question_id',
+        'quiz_answer_id',
+        'quiz_attempt_id',
+    ];
+
     public function quizQuestion(): BelongsTo
     {
         return $this->belongsTo(QuizQuestion::class, 'quiz_question_id');

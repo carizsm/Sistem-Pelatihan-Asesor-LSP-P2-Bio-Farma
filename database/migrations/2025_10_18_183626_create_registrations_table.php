@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('registrations', function (Blueprint $table) {
             $table->id();
             $table->date('regist_date');
-            $table->enum('status', ['lulus', 'tidak lulus'])->default('tidak lulus');
+            $table->enum('status', ['terdaftar', 'lulus', 'tidak lulus'])->default('terdaftar');
             
             $table->foreignId('user_id')
                   ->constrained('users')

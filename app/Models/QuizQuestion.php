@@ -16,7 +16,8 @@ class QuizQuestion extends Model
 
     protected $fillable = [
         'question',
-        'question_number'
+        'question_number',
+        'tna_id',
     ];
 
     public function tna(): BelongsTo
