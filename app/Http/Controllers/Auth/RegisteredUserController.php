@@ -38,11 +38,12 @@ class RegisteredUserController extends Controller
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:20'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', Rules\Password::defaults()],
             // 'position_id' => ['required', 'integer'],
             // 'unit_id' => ['required', 'integer'],
-            // 'role' => 'user',
+            'role' => 'user',
         ]);
 
         $user = User::create([
@@ -52,7 +53,7 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
             // 'position_id' => $request->position_id,
             // 'unit_id' => $request->unit_id,
-            // 'role' => UserRole::TRAINEE, 
+            'role' => UserRole::TRAINEE, 
         ]);
 
         event(new Registered($user));

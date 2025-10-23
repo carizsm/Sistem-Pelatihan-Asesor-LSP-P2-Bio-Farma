@@ -167,9 +167,8 @@
         <label for="nama"><b>Nama Lengkap</b></label>
         <input type="text" id="name" name="name" placeholder="Nama Lengkap" value="{{ old('name') }}" required autofocus />
 
-        <label for="nik"><b>NIK</b></label>
-        <!-- <input type="text" id="nik" name="nik" placeholder="NIK" value="{{ old('nik') }}" disabled /> -->
-        <input type="text" id="nik" name="nik" placeholder="NIK disabled" disabled />
+        <label for="nik"><b>NIK</b></label> 
+        <input type="text" id="nik" name="nik" placeholder="NIK" value="{{ old('nik') }}" required /> 
 
         <label for="email"><b>Email Biofarma</b></label>
         <input type="email" id="email" name="email" placeholder="Alamat Email" value="{{ old('email') }}" required />
@@ -177,7 +176,7 @@
         <label for="password"><b>Password</b></label>
         <input type="password" id="password" name="password" placeholder="Password" required autocomplete="new-password" />
 
-        <div class="form-row">
+        <!-- <div class="form-row">
           <div>
             <label for="jabatan"><b>Jabatan</b></label>
             <select id="position_id" name="position_id" disabled>
@@ -198,7 +197,7 @@
               <option value="4">HR</option>
             </select>
           </div>
-        </div>
+        </div> -->
 
         <button type="submit">Daftar</button>
       </form>

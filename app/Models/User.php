@@ -23,8 +23,10 @@ class User extends Authenticatable
         'name',
         'nik',
         'email',
-        'position_id',
-        'unit_id'
+        'password',
+        'role',
+        // 'position_id',
+        // 'unit_id'
     ];
 
     /**

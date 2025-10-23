@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('role', ['admin', 'trainee']);
+            $table->enum('role', ['admin', 'trainee'])->default('trainee');
             
             $table->foreignId('position_id')
                   ->nullable()
@@ -39,14 +39,16 @@ return new class extends Migration
             $table->timestamp('created_at')->nullable();
         });
 
-        Schema::create('sessions', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
-            $table->string('ip_address', 45)->nullable();
-            $table->text('user_agent')->nullable();
-            $table->longText('payload');
-            $table->integer('last_activity')->index();
-        });
+        // Schema::create('sessions', function (Blueprint $table) {
+        //     $table->string('id')->primary();
+        //     $table->foreignId('user_id')->nullable()->index();
+        //     $table->string('ip_address', 45)->nullable();
+        //     $table->text('user_agent')->nullable();
+        //     $table->longText('payload');
+        //     $table->integer('last_activity')->index();
+        // });
+
+        //DI COMMENT BIAR GK ERROR 'SESSION', SOALNYA SESSION NYA JADI ADA 2 PAS DI MIGRATE NANTI. 
     }
 
     /**
