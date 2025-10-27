@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Dashboard')</title>
+    <title>@yield('title', 'Presensi')</title>
     @vite('resources/css/app.css')
 </head>
 <body class="bg-[#EEE8E5] font-sans text-gray-800 flex min-h-screen">
@@ -109,57 +109,57 @@
                 </button> 
             </div> 
             <h1 class="absolute left-1/2 -translate-x-1/2 font-semibold text-lg"> 
-                @yield('header', 'Dashboard Peserta') 
+                @yield('header', 'Presensi Peserta') 
             </h1> 
         </div>
 
         {{-- Isi Konten --}}
-        <div class="space-y-4">
-            {{-- Sambutan --}}
-            <h2 class="text-xl font-semibold">Selamat Datang, <b>{{ Auth::user()->name ?? 'Peserta' }}</b> 👋</h2>
-
-            {{-- Informasi Peserta --}}
-            <p class="text-sm text-gray-600">Informasi Peserta</p>
-
-            <div class="bg-white rounded-2xl shadow-sm p-6 flex items-center gap-6">
-                {{-- Avatar --}}
-                <div class="bg-[#D9E7E9] rounded-lg w-32 h-32 flex items-center justify-center shadow-inner">
-                    <img src="{{ asset('icons/Avatar_Large.svg') }}" class="w-20 h-20" alt="Avatar">
-                </div>
-
-                {{-- Info Peserta --}}
-                <div class="flex flex-col space-y-2 text-base">
-                    <div class="flex">
-                        <span class="w-32 font-semibold text-gray-700">Nama</span>
-                        <span class="font-bold text-gray-900">: {{ Auth::user()->name ?? '-' }}</span>
-                    </div>
-                    <div class="flex">
-                        <span class="w-32 font-semibold text-gray-700">NIK</span>
-                        <span class="font-bold text-gray-900">: {{ Auth::user()->nik ?? '-' }}</span>
-                    </div>
-                    <div class="flex">
-                        <span class="w-32 font-semibold text-gray-700">Jabatan</span>
-                        <span class="font-bold text-gray-900">: {{ Auth::user()->unit_id ?? '-' }}</span>
-                    </div>
-                    <div class="flex">
-                        <span class="w-32 font-semibold text-gray-700">Unit Kerja</span>
-                        <span class="font-bold text-gray-900">: {{ Auth::user()->position_id ?? '-' }}</span>
-                    </div>
-                </div>
-            </div>
-
-            {{-- TUGAS --}}
-            <div class="mt-10"> 
-                <h2 class="text-xl font-semibold mb-4">Tugas Anda</h2> 
-                <p class="text-sm text-gray-600 mb-4">Daftar tugas yang tersedia</p> 
-                {{-- Card tugas placeholder --}} 
-                <div class="bg-white rounded-xl shadow-sm mt-4 p-6 text-center text-gray-400"> 
-                    <p>no entries</p> 
-                </div> 
-            </div> 
+        <div class="mt-3"> 
+            <h2 class="text-xl font-semibold mb-4">Presensi Pelatihan Asesor LSP</h2> 
+            <p class="text-sm text-gray-600 mb-4">Presensi Peserta</p> 
         </div>
 
         @yield('content')
+        {{-- Tabel --}}
+        <div class="overflow-x-auto">
+                <table class="w-full bg-white rounded-lg shadow-sm">
+                    <thead>
+                        <tr class="bg-[#F26E22] text-white">
+                            <th class="py-3 px-4 text-left">Nama Pelatihan</th>
+                            <th class="py-3 px-4 text-left">Waktu Mulai</th>
+                            <th class="py-3 px-4 text-left">Check-In</th>
+                            <th class="py-3 px-4 text-left">Check-Out</th>
+                            <th class="py-3 px-4 text-left">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b">
+                           <td class="py-3 px-4">no entries</td>
+                            <td class="py-3 px-4">no entries</td>
+                            <td class="py-3 px-4">no entries</td>
+                            <td class="py-3 px-4">no entries</td>
+                            <td class="py-3 px-4">
+                                <button class="px-4 py-2 bg-[#F26E22] text-white rounded-lg hover:bg-[#e65c0d] transition">
+                                    Absen
+                                </button>
+                            </td>
+                        </tr>
+                        <tr class="border-b bg-[#F4E5DD]">
+                            <td class="py-3 px-4">no entries</td>
+                            <td class="py-3 px-4">no entries</td>
+                            <td class="py-3 px-4">no entries</td>
+                            <td class="py-3 px-4">no entries</td>
+                            <td class="py-3 px-4">
+                                <button class="px-4 py-2 bg-[#F26E22] text-white rounded-lg hover:bg-[#e65c0d] transition">
+                                    Absen
+                                </button>
+                            </td>
+                        </tr>
+                        <!-- Tambahkan baris lain sesuai kebutuhan -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </main>
 
     <script src="https://unpkg.com/alpinejs" defer></script>

@@ -32,6 +32,21 @@ Route::prefix('admin')->group(function () {
 
 });
 
+//rute peserta
+Route::prefix('peserta')->group(function () {
+    Route::get('/presensi', function () {
+        return view('peserta.presensi');
+    })->name('peserta.presensi');
+
+    Route::get('/evaluasi1', function () {
+        return view('peserta.evaluasi1');
+    })->name('peserta.evaluasi1');
+
+    Route::get('/evaluasi2', function () {
+        return view('peserta.evaluasi2');
+    })->name('peserta.evaluasi2');
+});
+
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
