@@ -2,14 +2,17 @@
 
 namespace App\Models;
 
-use App\Enums\RealizationStatus;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Enums\RealizationStatus;
 
 class Tna extends Model
 {
+    use HasFactory;
+
     protected $table = 'tnas';
 
     protected $casts = [

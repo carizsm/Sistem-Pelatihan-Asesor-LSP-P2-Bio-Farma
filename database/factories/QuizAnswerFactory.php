@@ -19,6 +19,7 @@ class QuizAnswerFactory extends Factory
         return [
             'answer' => $this->faker->sentence(4),
             'answer_order' => 1,
+            'is_correct' => false, // Default false, akan di-set true untuk 1 jawaban benar
 
             'quiz_question_id' => null,
         ];

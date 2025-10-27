@@ -2,18 +2,21 @@
 
 namespace App\Models;
 
-use App\Enums\RegistrationStatus;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Enums\RegistrationStatus;
 
 class Registration extends Model
 {
+    use HasFactory;
+
     protected $table = 'registrations';
 
     protected $casts = [
         'regist_date' => 'date',
-        'status' => RegistrationStatus::class
     ];
 
     protected $fillable = [
