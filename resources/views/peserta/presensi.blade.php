@@ -99,7 +99,7 @@
     <main class="flex-1 px-6 pb-6 pt-2">
 
         {{-- Navbar Atas --}}
-        <div class="flex items-center bg-[#F3F3F3] rounded-xl p-2 shadow-sm mb-3 relative mt-0"> 
+        <div class="flex items-center bg-[#F3F3F3] rounded-xl p-2 shadow-sm mb-3 relative mt-0 px-6"> 
             <div class="flex items-center gap-3"> 
                 <button class="p-1 rounded-lg bg-[#D9E7E9] shadow-sm"> 
                     <img src="{{ asset('icons/Nav Backwards.svg') }}" class="w-5 h-5" alt="Back"> 

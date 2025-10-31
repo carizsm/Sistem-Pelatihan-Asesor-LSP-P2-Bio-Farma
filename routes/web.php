@@ -45,6 +45,14 @@ Route::prefix('peserta')->group(function () {
     Route::get('/evaluasi2', function () {
         return view('peserta.evaluasi2');
     })->name('peserta.evaluasi2');
+
+    Route::get('/feedback',function () {
+        return view('peserta.feedback');
+    })->name('peserta.feedback');
+
+    Route::get('/quiz',function () {
+        return view('peserta.quiz');
+    })->name('peserta.quiz');
 });
 
 Route::get('/dashboard', function () {
