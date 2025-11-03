@@ -42,4 +42,9 @@ class Registration extends Model
     {
         return $this->hasOne(FeedbackResult::class);
     }
+
+    public function quizAttempts()
+    {
+        return $this->hasMany(QuizAttempt::class);
+    }
 }
