@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use App\Enums\UserRole;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -28,6 +29,16 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $user = Auth::user();
+
+        // Cek role pengguna (Menggunakan Enum UserRole)
+        if ($user->role === UserRole::ADMIN) {
+            
+            // 1. Jika 'admin', arahkan ke dashboard admin (Daftar Asesor/Users)
+            return redirect()->route('admin.users.index');
+        }
+
+        // 2. Jika 'trainee' (peserta), arahkan ke dashboard peserta
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

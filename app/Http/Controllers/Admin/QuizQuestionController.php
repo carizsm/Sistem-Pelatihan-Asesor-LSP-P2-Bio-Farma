@@ -23,7 +23,7 @@ class QuizQuestionController extends Controller
     public function show(Tna $tna)
     {
         $questions = $tna->quizQuestions()
-            ->with('answers')
+            ->with('quizAnswers')
             ->orderBy('question_number')
             ->get();
             

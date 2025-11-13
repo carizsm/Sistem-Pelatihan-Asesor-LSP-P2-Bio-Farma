@@ -14,7 +14,7 @@ class StoreTnaRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|string|max:255',
+            'nama_pelatihan' => 'required|string|max:255',
             'period' => 'required|integer|digits:4',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',

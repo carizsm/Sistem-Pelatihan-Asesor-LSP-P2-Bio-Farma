@@ -16,7 +16,7 @@ class EvaluationResultController extends Controller
     {
         $tnas = Tna::withCount('registrations')->get();
         
-        return view('admin.results_feedback.index', compact('tnas'));
+        return view('admin.feedback_results.index', compact('tnas'));
     }
 
     public function showFeedbackReport(Tna $tna)
@@ -47,16 +47,36 @@ class EvaluationResultController extends Controller
             'hasil_pelatihan' => collect(range(14, 15))->map(fn($i) => $averages[sprintf('score_%02d', $i)])->avg(),
         ];
 
-        return view('admin.results_feedback.show', compact('tna', 'feedbacks', 'averages', 'categoryAverages'));
+        return view('admin.feedback_results.show', compact('tna', 'feedbacks', 'averages', 'categoryAverages'));
     }
 
     // ========== LAPORAN EVALUASI 2 (KUIS) ==========
 
     public function indexQuiz()
     {
-        $tnas = Tna::withCount('registrations')->get();
+        // REVISI: Kita perlu memuat relasi untuk menghitung statistik
+        $tnas = Tna::withCount('registrations')
+                    ->with(['registrations.quizAttempts']) // Eager load semua attempts terkait
+                    ->get();
+
+        // REVISI: Hitung statistik untuk setiap TNA
+        $tnas->each(function ($tna) {
+            // Ambil semua quiz attempts dari semua peserta TNA ini
+            $allAttempts = $tna->registrations->flatMap(function ($registration) {
+                return $registration->quizAttempts;
+            });
+
+            // Pisahkan Pre-Test dan Post-Test
+            $preTestAttempts = $allAttempts->where('type', 'pre-test');
+            $postTestAttempts = $allAttempts->where('type', 'post-test');
+            
+            // Hitung dan tambahkan properti baru ke TNA
+            $tna->avg_pre_test = $preTestAttempts->avg('score');
+            $tna->avg_post_test = $postTestAttempts->avg('score');
+            $tna->selesai = $postTestAttempts->count();
+        });
         
-        return view('admin.results_quiz.index', compact('tnas'));
+        return view('admin.quiz_results.index', compact('tnas'));
     }
 
     public function showQuizReport(Tna $tna)
@@ -100,7 +120,7 @@ class EvaluationResultController extends Controller
                 : 0,
         ];
 
-        return view('admin.results_quiz.show', compact(
+        return view('admin.quiz_results.show', compact(
             'tna', 
             'preTestAttempts', 
             'postTestAttempts', 

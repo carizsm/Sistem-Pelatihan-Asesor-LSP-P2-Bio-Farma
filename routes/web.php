@@ -2,66 +2,81 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\TnaController;
+use App\Http\Controllers\Admin\EvaluationResultController;
+use App\Http\Controllers\Admin\QuizQuestionController;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
 // Grup untuk semua rute admin
-Route::prefix('admin')->group(function () {
+Route::prefix('admin')->middleware(['auth'])->group(function () {
     
-    // Halaman Daftar Asesor
-    Route::get('/asesor', function () {
-        return view('admin.asesor'); 
-    })->name('admin.asesor');
-    // Halaman Tambah Asesor
-    Route::get('/asesor/tambah', function () {
-        return view('admin.tambah_asesor'); 
-    })->name('admin.asesor.create');
-    // Halaman Ubah Asesor (Menerima parameter NIK)
-    Route::get('/asesor/ubah/{nik}', function ($nik) {
-        return view('admin.ubah_asesor'); 
-    })->name('admin.asesor.edit');
+    // 1. Asesor (Diubah ke Resource: users)
+    // REVISI: Menggunakan Controller dan menambahkan rute POST/PUT/DELETE
+    Route::get('/users', [UserController::class, 'index'])->name('admin.users.index');
+    Route::get('/users/create', [UserController::class, 'create'])->name('admin.users.create');
+    Route::post('/users', [UserController::class, 'store'])->name('admin.users.store'); // <-- INI YANG HILANG
+    Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('admin.users.edit');
+    Route::put('/users/{user}', [UserController::class, 'update'])->name('admin.users.update'); // <-- INI JUGA HILANG
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy'); // <-- (Untuk tombol Hapus)
 
-    // Halaman Daftar TNA
-    Route::get('/tna', function () {
-        return view('admin.tna'); 
-    })->name('admin.tna');
-    // Halaman Tambah TNA
-    Route::get('/tna/tambah', function () {
-        return view('admin.tambah_tna'); 
-    })->name('admin.tna.create');
-    // Halaman Ubah TNA (Menerima parameter ID)
-    Route::get('/tna/ubah/{id}', function ($id) {
-        return view('admin.edit_tna'); 
-    })->name('admin.tna.edit');
+    // 2. TNA (Diubah ke Resource: tnas)
+    // REVISI: Mengganti semua closure dengan TnaController
+    Route::get('/tnas', [TnaController::class, 'index'])->name('admin.tnas.index');
+    Route::get('/tnas/create', [TnaController::class, 'create'])->name('admin.tnas.create');
+    Route::post('/tnas', [TnaController::class, 'store'])->name('admin.tnas.store');
+    Route::get('/tnas/{tna}', [TnaController::class, 'show'])->name('admin.tnas.show');
+    Route::get('/tnas/{tna}/edit', [TnaController::class, 'edit'])->name('admin.tnas.edit');
+    Route::put('/tnas/{tna}', [TnaController::class, 'update'])->name('admin.tnas.update');
+    Route::delete('/tnas/{tna}', [TnaController::class, 'destroy'])->name('admin.tnas.destroy');
+    
+    // REVISI: Rute untuk menambah/menghapus peserta (sesuai TnaController)
+    Route::post('/tnas/{tna}/registrations', [TnaController::class, 'storeRegistration'])->name('admin.registrations.store');
+    Route::delete('/registrations/{registration}', [TnaController::class, 'destroyRegistration'])->name('admin.registrations.destroy');
 
-    // Halaman Daftar Analisis Evaluasi 1
-    Route::get('/evaluasi-1', function () {
-        return view('admin.evaluasi1'); 
-    })->name('admin.evaluasi1');
-    // Halaman Rekap Evaluasi 1 (Menerima parameter nama pelatihan)
-    Route::get('/evaluasi-1/rekap/{pelatihan}', function ($pelatihan) {
-        return view('admin.rekap_evaluasi1'); 
-    })->name('admin.evaluasi1.rekap');
 
-    // Halaman Daftar Analisis Evaluasi 2
-    Route::get('/evaluasi-2', function () {
-        return view('admin.evaluasi2'); 
-    })->name('admin.evaluasi2');
-    // Halaman Rincian Skor Evaluasi 2 (Menerima parameter nama pelatihan)
-    Route::get('/evaluasi-2/rincian/{pelatihan}', function ($pelatihan) {
-        return view('admin.rincian_evaluasi2'); 
-    })->name('admin.evaluasi2.rincian');
+    // 3. Evaluasi 1 (Diubah ke Resource: feedback-results)
+    // REVISI: Ubah route ini agar menggunakan 'indexFeedback' dari Controller
+    Route::get('/feedback-results', [EvaluationResultController::class, 'indexFeedback'])
+         ->name('admin.feedback_results.index');
 
-    // Halaman Daftar Soal Pelatihan
-    Route::get('/atur-soal-quiz', function () {
-        return view('admin.atursoalquiz'); 
-    })->name('admin.atursoalquiz');
-    // Halaman Kelola Soal Quiz (Menerima parameter nama pelatihan)
-    Route::get('/atur-soal-quiz/kelola/{pelatihan}', function ($pelatihan) {
-        return view('admin.kelola_atursoalquiz'); 
-    })->name('admin.atursoalquiz.kelola');
+    // REVISI: Ubah route ini agar menggunakan 'showFeedbackReport' dari Controller
+    // Ganti parameter {pelatihan} menjadi {tna} agar cocok dengan method (Tna $tna)
+    Route::get('/feedback-results/{tna}/show', [EvaluationResultController::class, 'showFeedbackReport'])
+         ->name('admin.feedback_results.show');
+
+
+    // 4. Evaluasi 2 (Diubah ke Resource: quiz-results)
+    // REVISI: Ubah route ini agar menggunakan 'indexQuiz' dari Controller
+    Route::get('/quiz-results', [EvaluationResultController::class, 'indexQuiz'])
+         ->name('admin.quiz_results.index');
+
+    // REVISI: Ubah route ini agar menggunakan 'showQuizReport' dari Controller
+    // Ganti parameter {pelatihan} menjadi {tna} agar cocok dengan method (Tna $tna)
+    Route::get('/quiz-results/{tna}/show', [EvaluationResultController::class, 'showQuizReport'])
+         ->name('admin.quiz_results.show');
+
+
+    // 5. Atur Soal Quiz (Diubah ke Resource: quiz-questions)
+    
+    // REVISI: Menggunakan method 'index' dari controller
+    Route::get('/quiz-questions', [QuizQuestionController::class, 'index'])
+         ->name('admin.quiz_questions.index');
+
+    // REVISI: Menggunakan method 'show' dan parameter {tna} (untuk Route Model Binding)
+    Route::get('/quiz-questions/{tna}/kelola', [QuizQuestionController::class, 'show'])
+         ->name('admin.quiz_questions.show'); // Mengubah nama route agar konsisten
+
+    // REVISI: Rute baru untuk menangani proses Upload Excel
+    Route::post('/quiz-questions/{tna}/import', [QuizQuestionController::class, 'importExcel'])
+         ->name('admin.quiz_questions.import');
+
+    // REVISI: Rute baru untuk Download Template
+    Route::get('/quiz-questions/download-template', [QuizQuestionController::class, 'downloadTemplate'])
+         ->name('admin.quiz_questions.downloadTemplate');
 
 });
 

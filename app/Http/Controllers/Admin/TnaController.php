@@ -29,14 +29,14 @@ class TnaController extends Controller
 
     public function create()
     {
-        return view('admin.tnas.create');
+        return view('admin.tnas.form');
     }
     public function store(StoreTnaRequest $request)
     {
         $validated = $request->validated();
 
         // Calculate batch number
-        $batchCount = Tna::where('name', $validated['name'])
+        $batchCount = Tna::where('nama_pelatihan', $validated['nama_pelatihan'])
             ->count();
         
         $validated['batch'] = $batchCount + 1;
@@ -60,7 +60,7 @@ class TnaController extends Controller
 
     public function edit(Tna $tna)
     {
-        $tna->load('registrations.user');
+        $tna->load('registrations.user.unit', 'registrations.user.position');
         
         // Get registered user IDs
         $registeredUserIds = $tna->registrations->pluck('user_id')->toArray();
@@ -71,7 +71,7 @@ class TnaController extends Controller
             ->orderBy('name')
             ->get();
         
-        return view('admin.tnas.edit', compact('tna', 'availableUsers'));
+        return view('admin.tnas.form', compact('tna', 'availableUsers'));
     }
 
     public function update(UpdateTnaRequest $request, Tna $tna)
@@ -80,7 +80,7 @@ class TnaController extends Controller
         
         $tna->update($request->validated());
         
-        return redirect()->route('admin.tnas.edit', $tna)
+        return redirect()->route('admin.tnas.index', $tna)
             ->with('success', 'Data TNA berhasil diperbarui.');
     }
 

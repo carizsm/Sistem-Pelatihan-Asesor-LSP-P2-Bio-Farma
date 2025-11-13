@@ -85,6 +85,12 @@ class DatabaseSeeder extends Seeder
             PresenceSeeder::class,
         ]);
 
+        // 10. Seed Feedback Results (YANG HILANG)
+        $this->command->info('💬 Step 10: Creating feedback results...');
+        $this->call([
+            FeedbackResultSeeder::class,
+        ]);
+        
         $this->command->newLine();
         $this->command->info('✅ All seeders completed successfully!');
     }

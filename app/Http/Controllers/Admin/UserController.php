@@ -14,7 +14,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::with(['position', 'unit'])->paginate(15);
+        $users = User::with(['position', 'unit'])->get();
         return view('admin.users.index', compact('users'));
     }
 
@@ -33,8 +33,8 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
             'role' => ['required', Rule::in(['admin', 'trainee'])],
-            'position_id' => 'nullable|exists:positions,id',
-            'unit_id' => 'nullable|exists:units,id',
+            'position_id' => 'required|exists:positions,id',
+            'unit_id' => 'required|exists:units,id',
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
@@ -60,8 +60,8 @@ class UserController extends Controller
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:8|confirmed',
             'role' => ['required', Rule::in(['admin', 'trainee'])],
-            'position_id' => 'nullable|exists:positions,id',
-            'unit_id' => 'nullable|exists:units,id',
+            'position_id' => 'required|exists:positions,id',
+            'unit_id' => 'required|exists:units,id',
         ]);
 
         if (!empty($validated['password'])) {
