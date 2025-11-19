@@ -4,7 +4,7 @@ namespace App\Enums;
 
 /**
  * Mendefinisikan status realisasi TNA yang disimpan di database.
- * Ini hanya menyimpan status yang tidak bisa disimpulkan oleh sistem.
+ * Status ini menunjukkan apakah pelatihan benar-benar dilaksanakan atau tidak.
  */
 enum RealizationStatus: string
 {
@@ -12,6 +12,11 @@ enum RealizationStatus: string
      * Status default saat TNA dibuat dan belum dimulai.
      */
     case BELUM_TEREALISASI = 'belum terealisasi';
+
+    /**
+     * Status ketika TNA sudah dilaksanakan/diimplementasikan.
+     */
+    case TEREALISASI = 'terealisasi';
 
     /**
      * Status jika TNA dibatalkan secara manual oleh Admin.

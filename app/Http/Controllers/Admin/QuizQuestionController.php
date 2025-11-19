@@ -89,19 +89,21 @@ class QuizQuestionController extends Controller
                 ]);
 
                 // Create answers (columns C to F = index 2 to 5)
+                $answerNumber = 1;
                 for ($i = 2; $i <= 5; $i++) {
                     if (!empty($row[$i])) {
                         QuizAnswer::create([
                             'quiz_question_id' => $question->id,
                             'answer' => $row[$i],
-                            'answer_order' => $i - 1, // 1, 2, 3, 4
-                            'is_correct' => ($row[6] ?? 1) == ($i - 1),
+                            'answer_order' => $answerNumber,
+                            'is_correct' => ($row[6] ?? 1) == $answerNumber,
                         ]);
+                        $answerNumber++;
                     }
                 }
             }
 
-            return redirect()->route('admin.quiz-questions.show', $tna)
+            return redirect()->route('admin.quiz-questions.form', $tna)
                 ->with('success', 'Soal kuis berhasil diimpor.');
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal mengimpor soal: ' . $e->getMessage());

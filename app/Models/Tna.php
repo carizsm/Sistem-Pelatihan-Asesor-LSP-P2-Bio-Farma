@@ -25,6 +25,7 @@ class Tna extends Model
     ];
 
     protected $fillable = [
+        'tna_code',
         'name',
         'method',
         'passing_score',
@@ -34,6 +35,7 @@ class Tna extends Model
         'end_date',
         'speaker',
         'spt_file_path',
+        'realization_status',
         'reason',
         'goal',
         'before_status',

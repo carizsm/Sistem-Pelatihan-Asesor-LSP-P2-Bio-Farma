@@ -17,20 +17,24 @@ class UpdateTnaRequest extends FormRequest
         $tna = $this->tna;
 
         return [
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('tnas')
-                    ->where('batch', $tna->batch) 
-                    ->ignore($tna->id),
-            ],
+            // Informasi Umum TNA
+            'name' => 'required|string|max:255',
+            'method' => 'required|string|max:255',
+            'passing_score' => 'required|integer|between:60,100',
             'period' => 'required|integer|digits:4',
+            
+            // Jadwal Pelatihan
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'speaker' => 'nullable|string|max:255',
-            'location' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
+            'speaker' => 'required|string|max:255',
+            'spt_file_path' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            
+            // Analisis dan Justifikasi
+            'reason' => 'required|string|max:500',
+            'goal' => 'required|string|max:500',
+            'before_status' => 'required|string|max:500',
+            'after_status' => 'required|string|max:500',
+            'realization_status' => 'required|in:belum terealisasi,terealisasi,tidak terealisasi',
         ];
     }
 }

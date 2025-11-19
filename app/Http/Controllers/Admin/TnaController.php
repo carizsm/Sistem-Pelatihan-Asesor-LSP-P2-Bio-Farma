@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Tna;
 use App\Models\User;
 use App\Models\Registration;
@@ -35,12 +36,21 @@ class TnaController extends Controller
     {
         $validated = $request->validated();
 
-        // Calculate batch number
-        $batchCount = Tna::where('nama_pelatihan', $validated['nama_pelatihan'])
-            ->count();
-        
+        // Calculate batch number for the same training name (across all years)
+        $batchCount = Tna::where('name', $validated['name'])->count();
         $validated['batch'] = $batchCount + 1;
+        
+        // Calculate year sequence for tna_code (count of TNAs in this year)
+        $yearSequence = Tna::where('period', $validated['period'])->count() + 1;
+        
+        // Generate unique tna_code: TNA.{year}.{year_sequence}
+        $validated['tna_code'] = 'TNA.' . $validated['period'] . '.' . $yearSequence;
         $validated['user_id'] = Auth::id();
+        
+        // Handle file upload for spt_file_path
+        if ($request->hasFile('spt_file_path')) {
+            $validated['spt_file_path'] = $request->file('spt_file_path')->store('spt_files', 'public');
+        }
         
         Tna::create($validated);
         
@@ -78,9 +88,20 @@ class TnaController extends Controller
     {
         $this->authorize('update', $tna);
         
-        $tna->update($request->validated());
+        $validated = $request->validated();
         
-        return redirect()->route('admin.tnas.index', $tna)
+        // Handle file upload for spt_file_path
+        if ($request->hasFile('spt_file_path')) {
+            // Delete old file if exists
+            if ($tna->spt_file_path && Storage::disk('public')->exists($tna->spt_file_path)) {
+                Storage::disk('public')->delete($tna->spt_file_path);
+            }
+            $validated['spt_file_path'] = $request->file('spt_file_path')->store('spt_files', 'public');
+        }
+        
+        $tna->update($validated);
+        
+        return redirect()->route('admin.tnas.index')
             ->with('success', 'Data TNA berhasil diperbarui.');
     }
 
@@ -119,6 +140,9 @@ class TnaController extends Controller
         ], [
             'user_id.unique' => 'User ini sudah terdaftar dalam TNA ini.'
         ]);
+        
+        $validated['regist_date'] = now();
+        $validated['status'] = \App\Enums\RegistrationStatus::TERDAFTAR;
         
         $tna->registrations()->create($validated);
         

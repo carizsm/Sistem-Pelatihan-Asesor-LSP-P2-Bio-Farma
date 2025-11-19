@@ -15,15 +15,15 @@ class Registration extends Model
 
     protected $table = 'registrations';
 
+    protected $casts = [
+        'regist_date' => 'date',
+    ];
+
     protected $fillable = [
         'user_id',
         'tna_id',
         'regist_date',
-        'status',
-    ];
-
-    protected $casts = [
-        'regist_date' => 'date',
+        'status'
     ];
 
     public function user(): BelongsTo

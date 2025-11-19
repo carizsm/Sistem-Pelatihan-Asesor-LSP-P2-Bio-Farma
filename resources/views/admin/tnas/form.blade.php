@@ -12,6 +12,9 @@
 @section('page_title', $isEdit ? 'TNA - Ubah Data TNA' : 'TNA - Tambah Data TNA')
 
 @section('content')
+@php
+    use App\Enums\RealizationStatus;
+@endphp
 <div class="max-w-4xl mx-auto">
     
     {{-- REVISI: Tambahkan blok ini untuk menampilkan error validasi --}}
@@ -48,10 +51,10 @@
                            value="{{ old('name', $tna->name ?? '') }}" required>
                 </div>
                  <div>
-                    <label for="jenis_pelatihan" class="block text-sm font-medium text-gray-700 mb-1">Jenis Pelatihan</label>
-                    {{-- (Pastikan 'jenis_pelatihan' ada di $fillable Tna.php) --}}
-                    <input type="text" id="jenis_pelatihan" name="jenis_pelatihan" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" 
-                           value="{{ old('jenis_pelatihan', $tna->jenis_pelatihan ?? '') }}" placeholder="Contoh: Soft Skill" required>
+                    <label for="passing_score" class="block text-sm font-medium text-gray-700 mb-1">Skor Kelulusan</label>
+                    {{-- (Pastikan 'passing_score' ada di $fillable Tna.php) --}}
+                    <input type="text" id="passing_score" name="passing_score" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" 
+                           value="{{ old('passing_score', $tna->passing_score ?? '') }}" placeholder="Contoh: 75" required>
                 </div>
 
                 <div>
@@ -59,17 +62,16 @@
                     <input type="text" class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-500" 
                            value="{{ $isEdit ? ($tna->user->name ?? Auth::user()->name) : Auth::user()->name }}" readonly>
                 </div>
-                 <div>
+                <div>
                     <label for="unit_pembuat" class="block text-sm font-medium text-gray-700 mb-1">Unit Pembuat</label>
                     <input type="text" class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-500" 
                            value="{{ $isEdit ? ($tna->user->unit->unit_name ?? Auth::user()->unit->unit_name) : (Auth::user()->unit->unit_name ?? 'N/A') }}" readonly>
                 </div>
                 
                 <div>
-                    <label for="unit" class="block text-sm font-medium text-gray-700 mb-1">Unit Terkait (Jika Ada)</label>
-                    {{-- (Pastikan 'unit' ada di $fillable Tna.php) --}}
-                    <input type="text" id="unit" name="unit" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" 
-                           value="{{ old('unit', $tna->unit ?? '') }}" placeholder="Unit yang meminta pelatihan">
+                    <label for="tna_code" class="block text-sm font-medium text-gray-700 mb-1">Kode TNA</label>
+                    <input type="text" id="tna_code" name="tna_code" class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-500" 
+                           value="{{ old('tna_code', $tna->tna_code ?? 'Akan digenerate otomatis') }}" readonly>
                 </div>
                 <div>
                     <label for="period" class="block text-sm font-medium text-gray-700 mb-1">Periode</label>
@@ -111,10 +113,9 @@
                            value="{{ old('speaker', $tna->speaker ?? '') }}" placeholder="Nama Pembicara/Instruktur" required>
                 </div>
                 <div>
-                    <label for="status_kegiatan" class="block text-sm font-medium text-gray-700 mb-1">Status Kegiatan</label>
-                    {{-- (Pastikan 'status_kegiatan' ada di $fillable Tna.php) --}}
-                    <input type="text" id="status_kegiatan" name="status_kegiatan" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" 
-                           value="{{ old('status_kegiatan', $tna->status_kegiatan ?? 'Pertama') }}" placeholder="Contoh: Pertama, Kedua, dst." required>
+                    <label for="batch" class="block text-sm font-medium text-gray-700 mb-1">Batch Kegiatan</label>
+                    <input type="text" id="batch" name="batch" class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-500" 
+                           value="{{ old('batch', $tna->batch ?? 'Akan digenerate otomatis') }}" readonly>
                 </div>
 
                 <div class="col-span-2">
@@ -131,84 +132,95 @@
         {{-- BAGIAN 3: Analisis dan Justifikasi --}}
         <div class="bg-white p-8 rounded-xl shadow-lg mb-8">
             <h2 class="text-xl font-bold text-gray-700 mb-6 text-center">Analisis dan Justifikasi</h2>
-            {{-- (Pastikan 'alasan', 'kondisi_sebelum', 'tujuan', 'kondisi_diharapkan' ada di $fillable Tna.php) --}}
             <div class="grid grid-cols-2 gap-6 mb-4">
                 <div>
-                    <label for="alasan" class="block text-sm font-medium text-gray-700 mb-1">Alasan</label>
-                    <textarea id="alasan" name="alasan" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" required>{{ old('alasan', $tna->alasan ?? '') }}</textarea>
+                    <label for="reason" class="block text-sm font-medium text-gray-700 mb-1">Alasan</label>
+                    <textarea id="reason" name="reason" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" required>{{ old('reason', $tna->reason ?? '') }}</textarea>
                 </div>
                 <div>
-                    <label for="kondisi_sebelum" class="block text-sm font-medium text-gray-700 mb-1">Kondisi Sebelum</label>
-                    <textarea id="kondisi_sebelum" name="kondisi_sebelum" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" required>{{ old('kondisi_sebelum', $tna->kondisi_sebelum ?? '') }}</textarea>
+                    <label for="before_status" class="block text-sm font-medium text-gray-700 mb-1">Kondisi Sebelum</label>
+                    <textarea id="before_status" name="before_status" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" required>{{ old('before_status', $tna->before_status ?? '') }}</textarea>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-6 mb-4">
                 <div>
-                    <label for="tujuan" class="block text-sm font-medium text-gray-700 mb-1">Tujuan</label>
-                    <textarea id="tujuan" name="tujuan" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" required>{{ old('tujuan', $tna->tujuan ?? '') }}</textarea>
+                    <label for="goal" class="block text-sm font-medium text-gray-700 mb-1">Tujuan</label>
+                    <textarea id="goal" name="goal" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" required>{{ old('goal', $tna->goal ?? '') }}</textarea>
                 </div>
                 <div>
-                    <label for="kondisi_diharapkan" class="block text-sm font-medium text-gray-700 mb-1">Kondisi Diharapkan</label>
-                    <textarea id="kondisi_diharapkan" name="kondisi_diharapkan" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" required>{{ old('kondisi_diharapkan', $tna->kondisi_diharapkan ?? '') }}</textarea>
+                    <label for="after_status" class="block text-sm font-medium text-gray-700 mb-1">Kondisi Diharapkan</label>
+                    <textarea id="after_status" name="after_status" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" required>{{ old('after_status', $tna->after_status ?? '') }}</textarea>
                 </div>
             </div>
             <div>
                 <label for="realization_status" class="block text-sm font-medium text-gray-700 mb-1">Status Realisasi</label>
-                {{-- REVISI: name="status_realisasi" -> name="realization_status" --}}
                 <select id="realization_status" name="realization_status" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500 appearance-none" required>
-                    @foreach(['Belum Terealisasi', 'Terealisasi', 'Tidak Terealisasi'] as $status)
-                        <option value="{{ $status }}" {{ old('realization_status', $tna->realization_status ?? 'Belum Terealisasi') == $status ? 'selected' : '' }}>
-                            {{ $status }}
+                    @foreach(RealizationStatus::cases() as $status)
+                        <option value="{{ $status->value }}" {{ old('realization_status', $tna->realization_status ?? RealizationStatus::BELUM_TEREALISASI)->value == $status->value ? 'selected' : '' }}>
+                            {{ ucwords(str_replace('_', ' ', $status->name)) }}
                         </option>
                     @endforeach
                 </select>
             </div>
         </div>
 
-        {{-- BAGIAN 4: Daftar Karyawan Peserta (Selalu Tampil) --}}
-        <div class="bg-white p-8 rounded-xl shadow-lg mb-8" x-data="{ showParticipantForm: false }">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold text-gray-700 text-center">Daftar Karyawan Peserta ({{ $isEdit ? $tna->registrations->count() : 0 }})</h2>
-                
-                <button 
-                    type="button" 
-                    @click="showParticipantForm = !showParticipantForm" 
-                    class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-blue-700 transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                    @disabled(!$isEdit)
-                    title="{{ !$isEdit ? 'Simpan TNA terlebih dahulu untuk menambah peserta' : 'Pilih peserta untuk TNA ini' }}"
-                >
-                    <span x-show="!showParticipantForm">Pilih Peserta</span>
-                    <span x-show="showParticipantForm">Tutup Form</span>
-                </button>
-            </div>
+        {{-- Tombol Aksi Utama untuk TNA Form --}}
+        <div class="flex justify-center space-x-4 pb-8">
+            <a href="{{ route('admin.tnas.index') }}" class="px-6 py-2 border border-gray-400 text-gray-700 font-semibold rounded-lg shadow-sm bg-gray-300 hover:bg-gray-400 transition duration-200">
+                Kembali
+            </a>
+            <button type="submit" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-200">
+                {{ $isEdit ? 'Simpan Perubahan TNA' : 'Simpan TNA' }}
+            </button>
+        </div>
+        
+    </form> {{-- Form TNA UTAMA SELESAI DI SINI --}}
 
-            {{-- FORM TAMBAH PESERTA (Hanya muncul jika di-klik DAN mode Edit) --}}
-            <div x-show="showParticipantForm" class="border border-gray-200 rounded-lg p-4 mb-6 bg-gray-50 transition" x-cloak>
-                <h3 class="font-semibold mb-2">Tambah Peserta Baru</h3>
-                <p class="text-sm text-gray-600 mb-4">Hanya *trainee* yang belum terdaftar di TNA ini yang muncul.</p>
-                
-                <form action="{{ $isEdit ? route('admin.registrations.store', $tna->id) : '#' }}" method="POST">
-                    @csrf
-                    <div class="flex gap-4 items-end">
-                        <div class="flex-1">
-                            <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1">Pilih Peserta</label>
-                            <select id="user_id" name="user_id" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500 appearance-none" required>
-                                <option value="">Pilih Nama Karyawan</option>
-                                @forelse($availableUsers as $user)
-                                    <option value="{{ $user->id }}">{{ $user->name }} (NIK: {{ $user->nik }})</option>
-                                @empty
-                                    <option value="" disabled>Semua trainee sudah terdaftar</option>
-                                @endforelse
-                            </select>
-                        </div>
-                        <div>
-                            <button type="submit" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-200">
-                                Simpan
-                            </button>
-                        </div>
+    {{-- BAGIAN 4: Daftar Karyawan Peserta (Selalu Tampil) --}}
+    {{-- Form ini TERPISAH dari form TNA utama untuk menghindari nested forms --}}
+    <div class="bg-white p-8 rounded-xl shadow-lg mb-8" x-data="{ showParticipantForm: false }">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-700 text-center">Daftar Karyawan Peserta ({{ $isEdit ? $tna->registrations->count() : 0 }})</h2>
+            
+            <button
+                type="button"
+                @click="showParticipantForm = !showParticipantForm"
+                class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-blue-700 transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                @disabled(!$isEdit)
+                title="{{ !$isEdit ? 'Simpan TNA terlebih dahulu untuk menambah peserta' : 'Pilih peserta untuk TNA ini' }}"
+            >
+                <span x-show="!showParticipantForm">Pilih Peserta</span>
+                <span x-show="showParticipantForm">Tutup Form</span>
+            </button>
+        </div>
+
+        {{-- FORM TAMBAH PESERTA (Hanya muncul jika di-klik DAN mode Edit) --}}
+        <div x-show="showParticipantForm" class="border border-gray-200 rounded-lg p-4 mb-6 bg-gray-50 transition" x-cloak>
+            <h3 class="font-semibold mb-2">Tambah Peserta Baru</h3>
+            <p class="text-sm text-gray-600 mb-4">Hanya *trainee* yang belum terdaftar di TNA ini yang muncul.</p>
+            
+            <form action="{{ $isEdit ? route('admin.registrations.store', $tna->id) : '#' }}" method="POST">
+                @csrf
+                <div class="flex gap-4 items-end">
+                    <div class="flex-1">
+                        <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1">Pilih Peserta</label>
+                        <select id="user_id" name="user_id" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500 appearance-none" required>
+                            <option value="">Pilih Nama Karyawan</option>
+                            @forelse($availableUsers as $user)
+                                <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->nik }})</option>
+                            @empty
+                                <option value="" disabled>Semua trainee sudah terdaftar</option>
+                            @endforelse
+                        </select>
                     </div>
-                </form>
-            </div>
+                    <div>
+                        <button type="submit" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-200">
+                            Simpan
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
 
             {{-- TABEL PESERTA SAAT INI --}}
             <div class="overflow-x-auto">
@@ -271,17 +283,5 @@
             </div>
         </div>
         
-        {{-- Tombol Aksi Utama --}}
-        <div class="flex justify-center space-x-4 pb-8">
-            <a href="{{ route('admin.tnas.index') }}" class="px-6 py-2 border border-gray-400 text-gray-700 font-semibold rounded-lg shadow-sm bg-gray-300 hover:bg-gray-400 transition duration-200">
-                Kembali
-            </a>
-            <button type="submit" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-200">
-                {{ $isEdit ? 'Simpan Perubahan TNA' : 'Simpan TNA' }}
-            </button>
-        </div>
-        
-    </form> {{-- Form TNA UTAMA SELESAI DI SINI --}}
-    
 </div>
 @endsection

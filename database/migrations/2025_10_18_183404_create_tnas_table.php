@@ -20,7 +20,7 @@ return new class extends Migration
             $table->dateTime('end_date');
             $table->string('speaker', 255);
             $table->string('spt_file_path', 255)->nullable(); 
-            $table->enum('realization_status', ['tidak terealisasi', 'belum terealisasi'])->default('belum terealisasi');
+            $table->enum('realization_status', ['belum terealisasi', 'terealisasi', 'tidak terealisasi'])->default('belum terealisasi');
 
             $table->foreignId('user_id')
                   ->nullable()
