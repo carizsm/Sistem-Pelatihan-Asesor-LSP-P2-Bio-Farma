@@ -15,22 +15,25 @@ class Registration extends Model
 
     protected $table = 'registrations';
 
+    protected $fillable = [
+        'user_id',
+        'tna_id',
+        'regist_date',
+        'status',
+    ];
+
     protected $casts = [
         'regist_date' => 'date',
     ];
 
-    protected $fillable = [
-        'regist_date'
-    ];
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function tna(): BelongsTo
     {
-        return $this->belongsTo(Tna::class, 'tna_id');
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(Tna::class);
     }
 
     public function presence(): HasOne
@@ -43,7 +46,7 @@ class Registration extends Model
         return $this->hasOne(FeedbackResult::class);
     }
 
-    public function quizAttempts()
+    public function quizAttempts(): HasMany
     {
         return $this->hasMany(QuizAttempt::class);
     }

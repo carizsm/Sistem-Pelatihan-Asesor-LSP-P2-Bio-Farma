@@ -96,75 +96,132 @@
         <main class="flex-1 flex flex-col">
             <div class="flex-1 px-6 pb-6 pt-2 flex flex-col space-y-3">
                 {{-- Navbar Atas --}}
-                <div class="flex items-center justify-between bg-[#F3F3F3] rounded-xl p-2 shadow-sm mb-0 mt-0 relative">
-                    <div class="flex items-center gap-3 px-5">
-                        <button class="p-1 rounded-lg bg-[#D9E7E9] shadow-sm">
-                            <img src="{{ asset('icons/Nav Backwards.svg') }}" class="w-5 h-5" alt="Back">
-                        </button>
-                        <button class="p-1 rounded-lg bg-[#D9E7E9] shadow-sm">
-                            <img src="{{ asset('icons/Nav Forward.svg') }}" class="w-5 h-5" alt="Forward">
-                        </button>
-                    </div>
-
+                <div class="flex items-center justify-between bg-[#F3F3F3] rounded-xl p-2 shadow-sm mb-0 mt-0">
                     <h1 class="font-semibold text-lg text-center flex-1">
-                        @yield('header', 'Evaluasi 1 - (Task Name)')
+                        Evaluasi 1 - {{ $tna->name }}
+                        @if(isset($feedback))
+                            <span class="text-sm text-green-600">(Review)</span>
+                        @endif
                     </h1>
 
                     <div class="px-6"> 
-                        <a href="{{ route('peserta.evaluasi1') }}" 
-                            class="bg-[#F26E22] text-white text-sm px-3 py-1 rounded-lg font-semibold hover:bg-[#d65c1c] transition whitespace-nowrap">
-                            Selesaikan
-                        </a>
+                        @if(!isset($feedback))
+                            <button type="submit" form="feedback-form"
+                                class="bg-[#F26E22] text-white text-sm px-3 py-1 rounded-lg font-semibold hover:bg-[#d65c1c] transition whitespace-nowrap">
+                                Selesaikan
+                            </button>
+                        @else
+                            <a href="{{ route('peserta.evaluasi1') }}"
+                                class="bg-gray-500 text-white text-sm px-3 py-1 rounded-lg font-semibold hover:bg-gray-600 transition whitespace-nowrap">
+                                Kembali
+                            </a>
+                        @endif
                     </div>
                 </div>
 
                 {{-- Isi Konten --}}
                 <div class="bg-white rounded-xl shadow-sm p-6 flex-1 overflow-y-auto">
-                    <div class="overflow-x-auto">
-                        <table class="evaluation-table w-full border-collapse border border-gray-300">
-                            <thead>
-                                <tr>
-                                    <th class="border border-orange-400 bg-orange-200 px-4 py-3">NO</th>
-                                    <th class="border border-orange-400 bg-orange-200 px-4 py-3">OBJEK PENGEMATAN</th>
-                                    <th class="border border-orange-400 bg-orange-200 px-4 py-3">INDIKATOR MAKS</th>
-                                    <th class="border border-orange-400 bg-orange-200 px-4 py-3">SKALA</th>
-                                    <th class="border border-orange-400 bg-orange-200 px-4 py-3">INDIKATOR MIN</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="border border-gray-300 text-center font-semibold">1</td>
-                                    <td class="border border-gray-300">Tujuan pelaksanaan pelatihan</td>
-                                    <td class="border border-gray-300 text-center">Tercapai</td>
-                                    <td class="border border-gray-300">
-                                        <div class="flex justify-center gap-2">
-                                            <label><input type="radio" name="scale1" value="1"></label>
-                                            <label><input type="radio" name="scale1" value="2"></label>
-                                            <label><input type="radio" name="scale1" value="3"></label>
-                                            <label><input type="radio" name="scale1" value="4"></label>
-                                        </div>
-                                    </td>
-                                    <td class="border border-gray-300 text-center">Tidak Tercapai</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    @yield('content')
+                    <form id="feedback-form" method="POST" action="{{ route('evaluasi1.store', $registration) }}">
+                        @csrf
+                        <div class="overflow-x-auto">
+                            <table class="evaluation-table w-full border-collapse border border-gray-300">
+                                <thead>
+                                    <tr>
+                                        <th class="border border-orange-400 bg-orange-200 px-4 py-3">NO</th>
+                                        <th class="border border-orange-400 bg-orange-200 px-4 py-3">OBJEK PENGAMATAN</th>
+                                        <th class="border border-orange-400 bg-orange-200 px-4 py-3">INDIKATOR MAKS</th>
+                                        <th class="border border-orange-400 bg-orange-200 px-4 py-3">SKALA</th>
+                                        <th class="border border-orange-400 bg-orange-200 px-4 py-3">INDIKATOR MIN</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @php
+                                        $questions = [
+                                            // Tujuan Pelatihan
+                                            ['Tujuan pelaksanaan pelatihan', 'Tercapai', 'Tidak Tercapai'],
+                                            ['Tujuan Anda mengikuti pelatihan ini', 'Tercapai', 'Tidak Tercapai'],
+                                            
+                                            // Materi Pelatihan - separator
+                                            ['__SEPARATOR__', 'MATERI PELATIHAN', ''],
+                                            ['Cakupan materi', 'Sangat Lengkap', 'Tidak Lengkap'],
+                                            ['Kedalaman Materi', 'Sangat Dalam', 'Sangat Dangkal'],
+                                            ['Daya Tarik Topik', 'Sangat Menarik', 'Tidak Menarik'],
+                                            
+                                            // Alokasi Waktu - separator
+                                            ['__SEPARATOR__', 'ALOKASI WAKTU', ''],
+                                            ['Alokasi Waktu Pelaksanaan Pelatihan', 'Panjang', 'Pendek'],
+                                            ['Alokasi Waktu Untuk Diskusi', 'Panjang', 'Pendek'],
+                                            
+                                            // Instruktur - separator
+                                            ['__SEPARATOR__', 'INSTRUKTUR', ''],
+                                            ['Daya Tarik Penyampaian Topik', 'Sangat Menarik', 'Tidak Menarik'],
+                                            ['Penguasaan Atas Materi Pelatihan', 'Sangat Baik', 'Sangat Buruk'],
+                                            ['Penyampaian Materi', 'Sistematik', 'Tidak Sistematik'],
+                                            ['Kemampuan Menjawab Pertanyaan', 'Sangat Baik', 'Sangat Buruk'],
+                                            
+                                            // Fasilitas Pelatihan - separator
+                                            ['__SEPARATOR__', 'FASILITAS PELATIHAN', ''],
+                                            ['Kualitas Tempat Pelatihan', 'Sangat Baik', 'Sangat Buruk'],
+                                            ['Kualitas Modul/Handouts', 'Sangat Dalam', 'Sangat Dangkal'],
+                                            
+                                            // Hasil Pelatihan - separator
+                                            ['__SEPARATOR__', 'HASIL PELATIHAN', ''],
+                                            ['Manfaat Pelatihan', 'Sangat Bermanfaat', 'Tidak Bermanfaat'],
+                                            ['Aplikasi Pada Pekerjaan', 'Aplikatif', 'Tidak Aplikatif'],
+                                        ];
+                                        
+                                        $questionNumber = 0;
+                                    @endphp
+
+                                    @foreach($questions as $index => $question)
+                                        @if($question[0] === '__SEPARATOR__')
+                                            {{-- Category Separator Row --}}
+                                            <tr class="bg-gray-100">
+                                                <td colspan="5" class="border border-gray-300 px-4 py-2 text-center font-bold">
+                                                    {{ $question[1] }}
+                                                </td>
+                                            </tr>
+                                        @else
+                                            @php 
+                                                $questionNumber++; 
+                                                $scoreField = sprintf('score_%02d', $questionNumber);
+                                                $savedScore = isset($feedback) ? $feedback->$scoreField : null;
+                                            @endphp
+                                            <tr class="{{ isset($feedback) ? 'bg-gray-50' : '' }}">
+                                                <td class="border border-gray-300 text-center font-semibold">{{ $questionNumber }}</td>
+                                                <td class="border border-gray-300 px-4 py-2">{{ $question[0] }}</td>
+                                                <td class="border border-gray-300 text-center px-4">{{ $question[1] }}</td>
+                                                <td class="border border-gray-300">
+                                                    <div class="flex justify-center gap-4 py-2">
+                                                        @for($i = 4; $i >= 1; $i--)
+                                                            <label class="flex items-center gap-1 {{ isset($feedback) ? 'cursor-not-allowed' : 'cursor-pointer' }}">
+                                                                <input type="radio" 
+                                                                       name="score_{{ str_pad($questionNumber, 2, '0', STR_PAD_LEFT) }}" 
+                                                                       value="{{ $i }}"
+                                                                       {{ isset($feedback) && $savedScore == $i ? 'checked' : '' }}
+                                                                       {{ isset($feedback) ? 'disabled' : 'required' }}
+                                                                       class="w-4 h-4 {{ isset($feedback) ? 'cursor-not-allowed' : '' }}">
+                                                                <span class="text-sm {{ isset($feedback) && $savedScore == $i ? 'font-bold text-[#F26E22]' : '' }}">
+                                                                    {{ $i }}
+                                                                </span>
+                                                            </label>
+                                                        @endfor
+                                                    </div>
+                                                </td>
+                                                <td class="border border-gray-300 text-center px-4">{{ $question[2] }}</td>
+                                            </tr>
+                                        @endif
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {{-- HAPUS: Ringkasan skor tidak ditampilkan lagi --}}
+                    </form>
                 </div>
             </div>
 
-            {{-- Pagination Card - Sekarang di bagian bawah --}}
-            <div class="flex items-center justify-center bg-[#F3F3F3] rounded-xl shadow-sm mx-6 mb-3">
-                <div class="flex items-center gap-3 px-6 py-2">
-                    <button class="p-2 rounded-lg bg-[#D9E7E9] shadow-sm disabled:opacity-50" disabled>
-                        <img src="{{ asset('icons/Nav Backwards.svg') }}" class="w-4 h-4" alt="Previous">
-                    </button>
-                    <span class="text-sm text-gray-600 font-medium">Halaman 1 dari 1</span>
-                    <button class="p-2 rounded-lg bg-[#D9E7E9] shadow-sm disabled:opacity-50" disabled>
-                        <img src="{{ asset('icons/Nav Forward.svg') }}" class="w-4 h-4" alt="Next">
-                    </button>
-                </div>
-            </div>
+            {{-- HAPUS: Pagination Card tidak diperlukan --}}
         </main>
     </div>
 

@@ -13,19 +13,32 @@ class PresenceController extends Controller
     public function show()
     {
         $user = Auth::user();
+        $now = now();
         
-        // Find today's active registration
-        $registration = Registration::where('user_id', $user->id)
-            ->with('tna')
-            ->whereHas('tna', function ($query) {
-            $query->whereDate('start_date', today());
-            })
-            ->first();
+        // Ambil SEMUA registrations milik user tanpa filter waktu
+        $registrations = Registration::where('user_id', $user->id)
+            ->with(['tna', 'presence'])
+            ->get()
+            ->sortByDesc(function ($reg) use ($now) {
+                $start = Carbon::parse($reg->tna->start_date);
+                $end = Carbon::parse($reg->tna->end_date);
+                
+                // Prioritas sorting:
+                // 1. TNA yang sedang berlangsung (tertinggi)
+                if ($now->between($start, $end)) {
+                    return 1000000 + $now->diffInHours($start);
+                }
+                
+                // 2. TNA yang akan datang (berdasarkan kedekatan)
+                if ($now->lt($start)) {
+                    return 100000 - $now->diffInHours($start);
+                }
+                
+                // 3. TNA yang sudah selesai (terendah, tapi tetap tampilkan)
+                return -$now->diffInDays($end);
+            });
         
-        // Get presence if registration exists
-        $presence = $registration?->presence;
-        
-        return view('peserta.presensi', compact('registration', 'presence'));
+        return view('peserta.presensi', compact('registrations'));
     }
 
     public function store(Request $request)

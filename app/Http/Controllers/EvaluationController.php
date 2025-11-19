@@ -32,26 +32,28 @@ class EvaluationController extends Controller
         
         // Check ownership
         if ($registration->user_id !== $user->id) {
-            return redirect()->route('evaluasi1.index')
+            return redirect()->route('peserta.evaluasi1')
                 ->with('error', 'Anda tidak memiliki akses ke registrasi ini.');
         }
 
         $tna = $registration->tna;
         $now = Carbon::now();
 
-        // Check if feedback can be accessed (only after training ends)
+        // PRODUCTION: Validasi waktu aktif
         if ($tna->end_date && $now->lte(Carbon::parse($tna->end_date))) {
-            return redirect()->route('evaluasi1.index')
-                ->with('error', 'Feedback hanya bisa diisi setelah pelatihan selesai.');
+            return redirect()->route('peserta.evaluasi1')
+                ->with('error', 'Feedback hanya bisa diisi setelah pelatihan selesai pada ' . Carbon::parse($tna->end_date)->format('d M Y H:i'));
         }
+        
+        // TESTING: Comment code di atas untuk testing
 
         // Check if already submitted
         if ($registration->feedbackResult) {
-            return redirect()->route('evaluasi1.index')
+            return redirect()->route('peserta.evaluasi1')
                 ->with('info', 'Anda sudah mengisi feedback untuk TNA ini.');
         }
 
-        return view('peserta.feedback_form', compact('registration', 'tna'));
+        return view('peserta.feedback', compact('registration', 'tna'));
     }
 
     public function storeFeedback(Request $request, Registration $registration)
@@ -60,7 +62,7 @@ class EvaluationController extends Controller
         
         // Check ownership
         if ($registration->user_id !== $user->id) {
-            return redirect()->route('evaluasi1.index')
+            return redirect()->route('peserta.evaluasi1')
                 ->with('error', 'Anda tidak memiliki akses ke registrasi ini.');
         }
 
@@ -102,8 +104,31 @@ class EvaluationController extends Controller
             'score_15' => $validated['score_15'],
         ]);
 
-        return redirect()->route('evaluasi1.index')
+        return redirect()->route('peserta.evaluasi1')
             ->with('success', 'Feedback berhasil disimpan. Terima kasih!');
+    }
+
+    public function reviewFeedback(Registration $registration)
+    {
+        $user = auth()->user();
+        
+        // Check ownership
+        if ($registration->user_id !== $user->id) {
+            return redirect()->route('peserta.evaluasi1')
+                ->with('error', 'Anda tidak memiliki akses ke registrasi ini.');
+        }
+
+        // Check if feedback exists
+        $feedback = $registration->feedbackResult;
+        if (!$feedback) {
+            return redirect()->route('peserta.evaluasi1')
+                ->with('error', 'Anda belum mengisi feedback untuk TNA ini.');
+        }
+
+        $tna = $registration->tna;
+        
+        // Gunakan view yang sama, tapi kirim $feedback untuk mode review
+        return view('peserta.feedback', compact('registration', 'tna', 'feedback'));
     }
 
     // ========== EVALUASI 2 (KUIS) ==========
@@ -121,18 +146,26 @@ class EvaluationController extends Controller
 
     public function showQuizForm(Registration $registration, string $type)
     {
+        // HAPUS: Debug dd() sudah tidak diperlukan
+        // dd([
+        //     'registration_id' => $registration->id,
+        //     'type' => $type,
+        //     'user_id' => auth()->id(),
+        //     'message' => 'Method showQuizForm dipanggil!'
+        // ]);
+
         $user = auth()->user();
         $now = Carbon::now();
 
         // Check ownership
         if ($registration->user_id !== $user->id) {
-            return redirect()->route('evaluasi2.index')
+            return redirect()->route('peserta.evaluasi2')
                 ->with('error', 'Anda tidak memiliki akses ke registrasi ini.');
         }
 
         // Validate type
         if (!in_array($type, ['pre-test', 'post-test'])) {
-            return redirect()->route('evaluasi2.index')
+            return redirect()->route('peserta.evaluasi2')
                 ->with('error', 'Tipe kuis tidak valid.');
         }
 
@@ -144,7 +177,7 @@ class EvaluationController extends Controller
         if ($type === 'pre-test') {
             // Pre-test only available before training starts
             if ($now->gte($startDate)) {
-                return redirect()->route('evaluasi2.index')
+                return redirect()->route('peserta.evaluasi2')
                     ->with('error', 'Pre-Test hanya tersedia sebelum pelatihan dimulai.');
             }
         } elseif ($type === 'post-test') {
@@ -153,7 +186,7 @@ class EvaluationController extends Controller
             $postTestEnd = $endDate->copy()->addMinutes(30);
 
             if ($now->lt($postTestStart) || $now->gt($postTestEnd)) {
-                return redirect()->route('evaluasi2.index')
+                return redirect()->route('peserta.evaluasi2')
                     ->with('error', 'Post-Test hanya tersedia selama 30 menit setelah pelatihan berakhir.');
             }
         }
@@ -164,21 +197,21 @@ class EvaluationController extends Controller
             ->first();
 
         if ($existingAttempt) {
-            return redirect()->route('evaluasi2.index')
+            return redirect()->route('peserta.evaluasi2')
                 ->with('info', 'Anda sudah mengerjakan ' . $type . ' untuk TNA ini.');
         }
 
         $questions = QuizQuestion::where('tna_id', $tna->id)
-            ->with('answers')
+            ->with('quizAnswers')
             ->orderBy('question_number')
             ->get();
 
         if ($questions->isEmpty()) {
-            return redirect()->route('evaluasi2.index')
+            return redirect()->route('peserta.evaluasi2')
                 ->with('error', 'Belum ada soal kuis tersedia.');
         }
 
-        return view('peserta.quiz_form', compact('registration', 'tna', 'questions', 'type'));
+        return view('peserta.quiz', compact('registration', 'tna', 'questions', 'type'));
     }
 
     public function storeQuiz(Request $request, Registration $registration, string $type)
@@ -187,7 +220,7 @@ class EvaluationController extends Controller
         
         // Check ownership
         if ($registration->user_id !== $user->id) {
-            return redirect()->route('evaluasi2.index')
+            return redirect()->route('peserta.evaluasi2')
                 ->with('error', 'Anda tidak memiliki akses ke registrasi ini.');
         }
 
@@ -198,9 +231,9 @@ class EvaluationController extends Controller
         $answers = $request->answers;
         $tna = $registration->tna;
 
-        // Create quiz attempt first
+        // ⚠️ PERBAIKAN DI SINI! Tambahkan registration_id
         $quizAttempt = QuizAttempt::create([
-            'registration_id' => $registration->id,
+            'registration_id' => $registration->id,  // ← INI YANG DITAMBAHKAN!
             'type' => $type,
             'score' => null,
         ]);
@@ -211,7 +244,7 @@ class EvaluationController extends Controller
 
         foreach ($answers as $questionId => $answerId) {
             $question = QuizQuestion::find($questionId);
-            $answer = $question->answers()->where('id', $answerId)->first();
+            $answer = $question->quizAnswers()->where('id', $answerId)->first();
             
             $isCorrect = $answer && $answer->is_correct;
             
@@ -241,7 +274,40 @@ class EvaluationController extends Controller
             ]);
         }
 
-        return redirect()->route('evaluasi2.index')
+        return redirect()->route('peserta.evaluasi2')
             ->with('success', 'Kuis berhasil diselesaikan. Skor Anda: ' . number_format($score, 2) . '%');
+    }
+
+    public function reviewQuiz(Registration $registration, string $type)
+    {
+        $user = auth()->user();
+        
+        // Check ownership
+        if ($registration->user_id !== $user->id) {
+            return redirect()->route('peserta.evaluasi2')
+                ->with('error', 'Anda tidak memiliki akses ke registrasi ini.');
+        }
+
+        // Validate type
+        if (!in_array($type, ['pre-test', 'post-test'])) {
+            return redirect()->route('peserta.evaluasi2')
+                ->with('error', 'Tipe kuis tidak valid.');
+        }
+
+        // Get quiz attempt
+        $attempt = QuizAttempt::where('registration_id', $registration->id)
+            ->where('type', $type)
+            ->with(['traineeAnswers.quizQuestion.quizAnswers', 'traineeAnswers.quizAnswer'])
+            ->first();
+
+        if (!$attempt) {
+            return redirect()->route('peserta.evaluasi2')
+                ->with('error', 'Anda belum mengerjakan ' . $type . ' untuk TNA ini.');
+        }
+
+        $tna = $registration->tna;
+        
+        // Gunakan view yang sama (quiz.blade.php), tapi kirim $attempt untuk mode review
+        return view('peserta.quiz', compact('registration', 'tna', 'attempt', 'type'));
     }
 }

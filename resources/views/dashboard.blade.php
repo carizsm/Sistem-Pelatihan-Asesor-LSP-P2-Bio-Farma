@@ -99,16 +99,8 @@
     <main class="flex-1 px-6 pb-6 pt-2">
 
         {{-- Navbar Atas --}}
-        <div class="flex items-center bg-[#F3F3F3] rounded-xl p-2 shadow-sm mb-3 relative mt-0 px-6"> 
-            <div class="flex items-center gap-3"> 
-                <button class="p-1 rounded-lg bg-[#D9E7E9] shadow-sm"> 
-                    <img src="{{ asset('icons/Nav Backwards.svg') }}" class="w-5 h-5" alt="Back"> 
-                </button> 
-                <button class="p-1 rounded-lg bg-[#D9E7E9] shadow-sm"> 
-                    <img src="{{ asset('icons/Nav Forward.svg') }}" class="w-5 h-5" alt="Forward"> 
-                </button> 
-            </div> 
-            <h1 class="absolute left-1/2 -translate-x-1/2 font-semibold text-lg"> 
+        <div class="flex items-center justify-center bg-[#F3F3F3] rounded-xl p-2 shadow-sm mb-3 px-6"> 
+            <h1 class="font-semibold text-lg"> 
                 @yield('header', 'Dashboard Peserta') 
             </h1> 
         </div>
@@ -139,11 +131,11 @@
                     </div>
                     <div class="flex">
                         <span class="w-32 font-semibold text-gray-700">Jabatan</span>
-                        <span class="font-bold text-gray-900">: {{ Auth::user()->unit_id ?? '-' }}</span>
+                        <span class="font-bold text-gray-900">: {{ Auth::user()->position->position_name ?? '-' }}</span>
                     </div>
                     <div class="flex">
                         <span class="w-32 font-semibold text-gray-700">Unit Kerja</span>
-                        <span class="font-bold text-gray-900">: {{ Auth::user()->position_id ?? '-' }}</span>
+                        <span class="font-bold text-gray-900">: {{ Auth::user()->unit->unit_name ?? '-' }}</span>
                     </div>
                 </div>
             </div>
@@ -153,52 +145,100 @@
                 <h2 class="text-xl font-semibold mb-4">Tugas Anda</h2> 
                 <p class="text-sm text-gray-600 mb-4">Daftar tugas yang tersedia</p> 
 
-                {{-- Card tugas placeholder --}} 
+                {{-- Card tugas --}} 
                 <div class="bg-[#F3F3F3] rounded-xl shadow-sm p-6 space-y-4"> 
+                    @forelse($tasks as $registration)
+                        @php
+                            $tna = $registration->tna;
+                            $hasFeedback = $registration->feedbackResult;
+                            $hasPreTest = $registration->quizAttempts->where('type', 'pre-test')->isNotEmpty();
+                            $hasPostTest = $registration->quizAttempts->where('type', 'post-test')->isNotEmpty();
+                            $now = now();
+                            $startDate = \Carbon\Carbon::parse($tna->start_date);
+                            $endDate = \Carbon\Carbon::parse($tna->end_date);
+                        @endphp
 
-                    {{-- card tugas dummy 1--}}
-                    <div class="card-content bg-white rounded-lg shadow-sm px-5 py-3 flex justify-between items-center border border-gray-200">
-                        <div class="flex items-center gap-3">
-                            <!-- Icon -->
-                            <div class="flex items-center justify-center w-10 h-10 bg-[#E6F4F1] rounded-md shrink-0">
-                                <img src="{{ asset('icons/Evaluasi 1.svg') }}" class="w-10 h-10" alt="Tugas Icon">
+                        {{-- Feedback Task --}}
+                        @if(!$hasFeedback && $now->gt($endDate))
+                            <div class="card-content bg-white rounded-lg shadow-sm px-5 py-3 flex justify-between items-center border border-gray-200">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center justify-center w-10 h-10 bg-[#E6F4F1] rounded-md shrink-0">
+                                        <img src="{{ asset('icons/Evaluasi 1.svg') }}" class="w-10 h-10" alt="Evaluasi 1">
+                                    </div>
+                                    <div class="card-text flex flex-col justify-center">
+                                        <p class="text-sm text-gray-500 leading-none">Evaluasi 1</p>
+                                        <h3 class="font-semibold text-gray-900 text-base leading-tight mt-1">{{ $tna->name }}</h3>
+                                    </div>
+                                </div>
+                                <a href="{{ route('evaluasi1.form', $registration) }}" 
+                                   class="card-button bg-[#F26E22] hover:bg-[#d65c1c] text-white text-sm font-semibold px-4 py-2 rounded-md transition shrink-0">
+                                   Kerjakan
+                                </a>
                             </div>
+                        @endif
 
-                            <!-- Info tugas -->
-                            <div class="card-text flex flex-col justify-center">
-                                <p class="text-sm text-gray-500 leading-none">Evaluasi 1</p>
-                                <h3 class="font-semibold text-gray-900 text-base leading-tight mt-1">Tugas Dummy</h3>
+                        {{-- Pre-Test Task --}}
+                        @if(!$hasPreTest && $now->lt($startDate))
+                            <div class="card-content bg-white rounded-lg shadow-sm px-5 py-3 flex justify-between items-center border border-gray-200">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center justify-center w-10 h-10 bg-[#E6F4F1] rounded-md shrink-0">
+                                        <img src="{{ asset('icons/Evaluasi 2.svg') }}" class="w-10 h-10" alt="Pre-Test">
+                                    </div>
+                                    <div class="card-text flex flex-col justify-center">
+                                        <p class="text-sm text-gray-500 leading-none">Pre-Test</p>
+                                        <h3 class="font-semibold text-gray-900 text-base leading-tight mt-1">{{ $tna->name }}</h3>
+                                    </div>
+                                </div>
+                                <a href="{{ route('evaluasi2.quiz.form', [$registration, 'pre-test']) }}" 
+                                   class="card-button bg-[#F26E22] hover:bg-[#d65c1c] text-white text-sm font-semibold px-4 py-2 rounded-md transition shrink-0">
+                                   Kerjakan
+                                </a>
                             </div>
+                        @endif
+
+                        {{-- Post-Test Task --}}
+                        @if(!$hasPostTest && $now->between($endDate, $endDate->copy()->addMinutes(30)))
+                            <div class="card-content bg-white rounded-lg shadow-sm px-5 py-3 flex justify-between items-center border border-gray-200">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center justify-center w-10 h-10 bg-[#E6F4F1] rounded-md shrink-0">
+                                        <img src="{{ asset('icons/Evaluasi 2.svg') }}" class="w-10 h-10" alt="Post-Test">
+                                    </div>
+                                    <div class="card-text flex flex-col justify-center">
+                                        <p class="text-sm text-gray-500 leading-none">Post-Test</p>
+                                        <h3 class="font-semibold text-gray-900 text-base leading-tight mt-1">{{ $tna->name }}</h3>
+                                    </div>
+                                </div>
+                                <a href="{{ route('evaluasi2.quiz.form', [$registration, 'post-test']) }}" 
+                                   class="card-button bg-[#F26E22] hover:bg-[#d65c1c] text-white text-sm font-semibold px-4 py-2 rounded-md transition shrink-0">
+                                   Kerjakan
+                                </a>
+                            </div>
+                        @endif
+
+                        {{-- Task Completed --}}
+                        @if($hasFeedback && $now->gt($endDate))
+                            <div class="card-content bg-white rounded-lg shadow-sm px-5 py-3 flex justify-between items-center border border-gray-200">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center justify-center w-10 h-10 bg-[#E6F4F1] rounded-md shrink-0">
+                                        <img src="{{ asset('icons/Completed.svg') }}" class="w-10 h-10" alt="Completed">
+                                    </div>
+                                    <div class="card-text flex flex-col justify-center">
+                                        <p class="text-sm text-gray-500 leading-none">Sudah Dikerjakan</p>
+                                        <h3 class="font-semibold text-gray-900 text-base leading-tight mt-1">{{ $tna->name }}</h3>
+                                    </div>
+                                </div>
+                                <a href="{{ route('evaluasi1.review', $registration) }}" 
+                                   class="card-button bg-[#4CAF50] hover:bg-[#43A047] text-white text-sm font-semibold px-4 py-2 rounded-md transition shrink-0">
+                                   Review
+                                </a>
+                            </div>
+                        @endif
+                    @empty
+                        <div class="text-center py-8">
+                            <p class="text-gray-500 text-base">Tidak ada tugas yang tersedia saat ini.</p>
+                            <p class="text-gray-400 text-sm mt-2">Tugas akan muncul saat ada evaluasi atau kuis yang perlu dikerjakan.</p>
                         </div>
-
-                        <!-- Tombol Kerjakan -->
-                        <a href="{{ route('peserta.feedback') }}" 
-                           class="card-button bg-[#F26E22] hover:bg-[#d65c1c] text-white text-sm font-semibold px-4 py-2 rounded-md transition shrink-0">
-                           Kerjakan
-                        </a>
-                    </div>
-                    {{-- card tugas dummy 2--}}
-                    <div class="card-content bg-white rounded-lg shadow-sm px-5 py-3 flex justify-between items-center border border-gray-200">
-                        <div class="flex items-center gap-3">
-                            <!-- Icon -->
-                            <div class="flex items-center justify-center w-10 h-10 bg-[#E6F4F1] rounded-md shrink-0">
-                                <img src="{{ asset('icons/Evaluasi 2.svg') }}" class="w-10 h-10" alt="Tugas Icon">
-                            </div>
-
-                            <!-- Info tugas -->
-                            <div class="card-text flex flex-col justify-center">
-                                <p class="text-sm text-gray-500 leading-none">Evaluasi 2</p>
-                                <h3 class="font-semibold text-gray-900 text-base leading-tight mt-1">Tugas Dummy</h3>
-                            </div>
-                        </div>
-
-                        <!-- Tombol Kerjakan -->
-                        <a href="{{ route('peserta.quiz') }}" 
-                           class="card-button bg-[#F26E22] hover:bg-[#d65c1c] text-white text-sm font-semibold px-4 py-2 rounded-md transition shrink-0">
-                           Kerjakan
-                        </a>
-                    </div>
-                    
+                    @endforelse
                 </div>
             </div>
         </div>

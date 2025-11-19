@@ -99,44 +99,62 @@
     <main class="flex-1 px-6 pb-6 pt-2">
 
         {{-- Navbar Atas --}}
-        <div class="flex items-center bg-[#F3F3F3] rounded-xl p-2 shadow-sm mb-3 relative mt-0 px-6"> 
-            <div class="flex items-center gap-3"> 
-                <button class="p-1 rounded-lg bg-[#D9E7E9] shadow-sm"> 
-                    <img src="{{ asset('icons/Nav Backwards.svg') }}" class="w-5 h-5" alt="Back"> 
-                </button> 
-                <button class="p-1 rounded-lg bg-[#D9E7E9] shadow-sm"> 
-                    <img src="{{ asset('icons/Nav Forward.svg') }}" class="w-5 h-5" alt="Forward"> 
-                </button> 
-            </div> 
-            <h1 class="absolute left-1/2 -translate-x-1/2 font-semibold text-lg"> 
+        <div class="flex items-center justify-center bg-[#F3F3F3] rounded-xl p-2 shadow-sm mb-3 px-6"> 
+            <h1 class="font-semibold text-lg"> 
                 @yield('header', 'Evaluasi 1') 
             </h1> 
         </div>
         {{-- Isi Konten --}}
         <div class="mt-3"> 
             <h2 class="text-xl font-semibold mb-4">Daftar Evaluasi 1</h2> 
-            <p class="text-sm text-gray-600 mb-4">Daftar tugas yang tersedia</p>
+            <p class="text-sm text-gray-600 mb-4">Daftar feedback yang tersedia</p>
+            
             {{-- Card tugas placeholder --}} 
             <div class="bg-[#F3F3F3] rounded-xl shadow-sm p-6 space-y-4"> 
-                {{-- card tugas dummy 1--}}
-                <div class="card-content bg-white rounded-lg shadow-sm px-5 py-3 flex justify-between items-center border border-gray-200">
-                    <div class="flex items-center gap-3">
-                        <!-- Icon -->
-                        <div class="flex items-center justify-center w-10 h-10 bg-[#E6F4F1] rounded-md shrink-0">
-                            <img src="{{ asset('icons/Evaluasi 1.svg') }}" class="w-10 h-10" alt="Tugas Icon">
+                @forelse($registrations as $registration)
+                    @php
+                        $tna = $registration->tna;
+                        $hasFeedback = $registration->feedbackResult;
+                        
+                        // PRODUCTION: Hanya bisa akses setelah end_date
+                        $canAccess = now()->gt(\Carbon\Carbon::parse($tna->end_date));
+                        
+                        // TESTING: Uncomment baris di bawah untuk testing (bisa akses kapan saja)
+                        // $canAccess = true;
+                    @endphp
+
+                    <div class="card-content bg-white rounded-lg shadow-sm px-5 py-3 flex justify-between items-center border border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center justify-center w-10 h-10 bg-[#E6F4F1] rounded-md shrink-0">
+                                <img src="{{ asset('icons/Evaluasi 1.svg') }}" class="w-10 h-10" alt="Evaluasi 1">
+                            </div>
+                            <div class="card-text flex flex-col justify-center">
+                                <p class="text-sm text-gray-500 leading-none">Evaluasi 1</p>
+                                <h3 class="font-semibold text-gray-900 text-base leading-tight mt-1">{{ $tna->name }}</h3>
+                                <p class="text-xs text-gray-400 mt-1">Periode: {{ \Carbon\Carbon::parse($tna->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($tna->end_date)->format('d M Y') }}</p>
+                            </div>
                         </div>
-                        <!-- Info tugas -->
-                        <div class="card-text flex flex-col justify-center">
-                            <p class="text-sm text-gray-500 leading-none">Evaluasi 1</p>
-                            <h3 class="font-semibold text-gray-900 text-base leading-tight mt-1">Tugas Dummy</h3>
-                        </div>
+
+                        @if($hasFeedback)
+                            <a href="{{ route('evaluasi1.review', $registration) }}" 
+                               class="group px-4 py-2 bg-green-100 hover:bg-[#17A2B8] text-green-700 hover:text-white text-sm font-semibold rounded-md transition-all duration-200 relative overflow-hidden">
+                                <span class="group-hover:hidden">✓ Sudah Dikerjakan</span>
+                                <span class="hidden group-hover:inline">Review</span>
+                            </a>
+                        @elseif(!$canAccess)
+                            <span class="px-4 py-2 bg-gray-100 text-gray-500 text-sm font-semibold rounded-md">
+                                Tersedia setelah {{ \Carbon\Carbon::parse($tna->end_date)->format('d M Y H:i') }}
+                            </span>
+                        @else
+                            <a href="{{ route('evaluasi1.form', $registration) }}" 
+                               class="card-button bg-[#F26E22] hover:bg-[#d65c1c] text-white text-sm font-semibold px-4 py-2 rounded-md transition shrink-0">
+                               Kerjakan
+                            </a>
+                        @endif
                     </div>
-                    <!-- Tombol Kerjakan -->
-                    <a href="{{ route('peserta.feedback') }}" 
-                       class="card-button bg-[#F26E22] hover:bg-[#d65c1c] text-white text-sm font-semibold px-4 py-2 rounded-md transition shrink-0">
-                       Kerjakan
-                    </a>
-                </div>
+                @empty
+                    <p class="text-gray-500 text-center py-4">Tidak ada evaluasi yang tersedia.</p>
+                @endforelse
             </div>
         </div>
 

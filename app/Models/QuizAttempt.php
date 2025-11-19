@@ -20,10 +20,12 @@ class QuizAttempt extends Model
     ];
 
     protected $fillable = [
-        'type'
+        'registration_id',
+        'type',
+        'score'
     ];
 
-    public function trainee_answers(): HasMany
+    public function traineeAnswers(): HasMany
     {
         return $this->hasMany(TraineeAnswer::class);
     }

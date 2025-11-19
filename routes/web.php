@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PresenceController;
+use App\Http\Controllers\EvaluationController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\TnaController;
@@ -103,13 +106,36 @@ Route::prefix('peserta')->group(function () {
     })->name('peserta.quiz');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Presensi
+    Route::get('/peserta/presensi', [PresenceController::class, 'show'])->name('peserta.presensi');
+    Route::post('/presence', [PresenceController::class, 'store'])->name('presence.store');
+    Route::put('/presence/{presence}', [PresenceController::class, 'update'])->name('presence.update');
+    
+    // Evaluasi 1 (Feedback) Routes
+    Route::get('/peserta/evaluasi1', [EvaluationController::class, 'indexFeedback'])->name('peserta.evaluasi1');
+    Route::get('/evaluasi1/{registration}', [EvaluationController::class, 'showFeedbackForm'])->name('evaluasi1.form');
+    Route::post('/evaluasi1/{registration}', [EvaluationController::class, 'storeFeedback'])->name('evaluasi1.store');
+    Route::get('/evaluasi1/{registration}/review', [EvaluationController::class, 'reviewFeedback'])->name('evaluasi1.review');
+    
+    // Evaluasi 2 (Quiz) Routes
+    Route::get('/peserta/evaluasi2', [EvaluationController::class, 'indexQuiz'])->name('peserta.evaluasi2');
+    Route::get('/evaluasi2/{registration}/{type}', [EvaluationController::class, 'showQuizForm'])->name('evaluasi2.quiz.form');
+    Route::post('/evaluasi2/{registration}/{type}', [EvaluationController::class, 'storeQuiz'])->name('evaluasi2.quiz.store');
+    Route::get('/evaluasi2/{registration}/{type}/review', [EvaluationController::class, 'reviewQuiz'])->name('evaluasi2.review');
+    
+    // Backward compatibility route (if needed)
+    Route::get('/peserta/quiz', function() {
+        return redirect()->route('peserta.evaluasi2');
+    })->name('peserta.quiz');
+    
+    // Profile routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
 require __DIR__.'/auth.php';

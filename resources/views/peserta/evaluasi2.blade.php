@@ -99,16 +99,8 @@
     <main class="flex-1 px-6 pb-6 pt-2">
 
         {{-- Navbar Atas --}}
-        <div class="flex items-center bg-[#F3F3F3] rounded-xl p-2 shadow-sm mb-3 relative mt-0 px-6"> 
-            <div class="flex items-center gap-3"> 
-                <button class="p-1 rounded-lg bg-[#D9E7E9] shadow-sm"> 
-                    <img src="{{ asset('icons/Nav Backwards.svg') }}" class="w-5 h-5" alt="Back"> 
-                </button> 
-                <button class="p-1 rounded-lg bg-[#D9E7E9] shadow-sm"> 
-                    <img src="{{ asset('icons/Nav Forward.svg') }}" class="w-5 h-5" alt="Forward"> 
-                </button> 
-            </div> 
-            <h1 class="absolute left-1/2 -translate-x-1/2 font-semibold text-lg"> 
+        <div class="flex items-center justify-center bg-[#F3F3F3] rounded-xl p-2 shadow-sm mb-3 px-6"> 
+            <h1 class="font-semibold text-lg"> 
                 @yield('header', 'Evaluasi 2') 
             </h1> 
         </div>
@@ -118,25 +110,83 @@
             <p class="text-sm text-gray-600 mb-4">Daftar tugas yang tersedia</p>
             {{-- Card tugas placeholder --}} 
             <div class="bg-[#F3F3F3] rounded-xl shadow-sm p-6 space-y-4"> 
-                {{-- card tugas dummy--}}
-                <div class="card-content bg-white rounded-lg shadow-sm px-5 py-3 flex justify-between items-center border border-gray-200">
-                    <div class="flex items-center gap-3">
-                        <!-- Icon -->
-                        <div class="flex items-center justify-center w-10 h-10 bg-[#E6F4F1] rounded-md shrink-0">
-                            <img src="{{ asset('icons/Evaluasi 2.svg') }}" class="w-10 h-10" alt="Tugas Icon">
+                @forelse($registrations as $registration)
+                    @php
+                        $tna = $registration->tna;
+                        $hasPreTest = $registration->quizAttempts->where('type', 'pre-test')->isNotEmpty();
+                        $hasPostTest = $registration->quizAttempts->where('type', 'post-test')->isNotEmpty();
+                        $preTestAttempt = $registration->quizAttempts->where('type', 'pre-test')->first();
+                        $postTestAttempt = $registration->quizAttempts->where('type', 'post-test')->first();
+                        $now = now();
+                        $startDate = \Carbon\Carbon::parse($tna->start_date);
+                        $endDate = \Carbon\Carbon::parse($tna->end_date);
+                        $postTestEnd = $endDate->copy()->addMinutes(30);
+                    @endphp
+
+                    {{-- Pre-Test Card --}}
+                    <div class="card-content bg-white rounded-lg shadow-sm px-5 py-3 flex justify-between items-center border border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center justify-center w-10 h-10 bg-[#E6F4F1] rounded-md shrink-0">
+                                <img src="{{ asset('icons/Evaluasi 2.svg') }}" class="w-10 h-10" alt="Pre-Test">
+                            </div>
+                            <div class="card-text flex flex-col justify-center">
+                                <p class="text-sm text-gray-500 leading-none">Pre-Test</p>
+                                <h3 class="font-semibold text-gray-900 text-base leading-tight mt-1">{{ $tna->name }}</h3>
+                                <p class="text-xs text-gray-400 mt-1">Tersedia sebelum: {{ $startDate->format('d M Y H:i') }}</p>
+                            </div>
                         </div>
-                        <!-- Info tugas -->
-                        <div class="card-text flex flex-col justify-center">
-                            <p class="text-sm text-gray-500 leading-none">Evaluasi 2</p>
-                            <h3 class="font-semibold text-gray-900 text-base leading-tight mt-1">Tugas Dummy</h3>
-                        </div>
+
+                        @if($hasPreTest)
+                            <a href="{{ route('evaluasi2.review', [$registration, 'pre-test']) }}" 
+                               class="group px-4 py-2 bg-green-100 hover:bg-[#17A2B8] text-green-700 hover:text-white text-sm font-semibold rounded-md transition-all duration-200">
+                                <span class="group-hover:hidden">✓ Sudah Dikerjakan</span>
+                                <span class="hidden group-hover:inline">Review (Skor: {{ number_format($preTestAttempt->score, 0) }})</span>
+                            </a>
+                        @elseif($now->gte($startDate))
+                            <span class="px-4 py-2 bg-gray-100 text-gray-500 text-sm font-semibold rounded-md">
+                                Sudah Berakhir
+                            </span>
+                        @else
+                            <a href="{{ route('evaluasi2.quiz.form', [$registration, 'pre-test']) }}" 
+                               class="card-button bg-[#F26E22] hover:bg-[#d65c1c] text-white text-sm font-semibold px-4 py-2 rounded-md transition shrink-0">
+                               Kerjakan
+                            </a>
+                        @endif
                     </div>
-                    <!-- Tombol Kerjakan -->
-                    <a href="{{ route('peserta.quiz') }}" 
-                       class="card-button bg-[#F26E22] hover:bg-[#d65c1c] text-white text-sm font-semibold px-4 py-2 rounded-md transition shrink-0">
-                       Kerjakan
-                    </a>
-                </div>
+
+                    {{-- Post-Test Card --}}
+                    <div class="card-content bg-white rounded-lg shadow-sm px-5 py-3 flex justify-between items-center border border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center justify-center w-10 h-10 bg-[#E6F4F1] rounded-md shrink-0">
+                                <img src="{{ asset('icons/Evaluasi 2.svg') }}" class="w-10 h-10" alt="Post-Test">
+                            </div>
+                            <div class="card-text flex flex-col justify-center">
+                                <p class="text-sm text-gray-500 leading-none">Post-Test</p>
+                                <h3 class="font-semibold text-gray-900 text-base leading-tight mt-1">{{ $tna->name }}</h3>
+                                <p class="text-xs text-gray-400 mt-1">Tersedia: {{ $endDate->format('d M Y H:i') }} - {{ $postTestEnd->format('H:i') }}</p>
+                            </div>
+                        </div>
+
+                        @if($hasPostTest)
+                            <a href="{{ route('evaluasi2.review', [$registration, 'post-test']) }}" 
+                               class="group px-4 py-2 bg-green-100 hover:bg-[#17A2B8] text-green-700 hover:text-white text-sm font-semibold rounded-md transition-all duration-200">
+                                <span class="group-hover:hidden">✓ Sudah Dikerjakan</span>
+                                <span class="hidden group-hover:inline">Review (Skor: {{ number_format($postTestAttempt->score, 0) }})</span>
+                            </a>
+                        @elseif($now->lt($endDate) || $now->gt($postTestEnd))
+                            <span class="px-4 py-2 bg-gray-100 text-gray-500 text-sm font-semibold rounded-md">
+                                Belum Tersedia
+                            </span>
+                        @else
+                            <a href="{{ route('evaluasi2.quiz.form', [$registration, 'post-test']) }}" 
+                               class="card-button bg-[#F26E22] hover:bg-[#d65c1c] text-white text-sm font-semibold px-4 py-2 rounded-md transition shrink-0">
+                               Kerjakan
+                            </a>
+                        @endif
+                    </div>
+                @empty
+                    <p class="text-gray-500 text-center py-4">Tidak ada kuis yang tersedia.</p>
+                @endforelse
             </div>
         </div>
 

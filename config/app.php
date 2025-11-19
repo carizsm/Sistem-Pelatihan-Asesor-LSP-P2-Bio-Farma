@@ -65,7 +65,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => 'Asia/Jakarta', // PENTING: Set ke WIB
 
     /*
     |--------------------------------------------------------------------------

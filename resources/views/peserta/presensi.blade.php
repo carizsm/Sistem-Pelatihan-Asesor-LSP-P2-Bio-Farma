@@ -99,16 +99,8 @@
     <main class="flex-1 px-6 pb-6 pt-2">
 
         {{-- Navbar Atas --}}
-        <div class="flex items-center bg-[#F3F3F3] rounded-xl p-2 shadow-sm mb-3 relative mt-0 px-6"> 
-            <div class="flex items-center gap-3"> 
-                <button class="p-1 rounded-lg bg-[#D9E7E9] shadow-sm"> 
-                    <img src="{{ asset('icons/Nav Backwards.svg') }}" class="w-5 h-5" alt="Back"> 
-                </button> 
-                <button class="p-1 rounded-lg bg-[#D9E7E9] shadow-sm"> 
-                    <img src="{{ asset('icons/Nav Forward.svg') }}" class="w-5 h-5" alt="Forward"> 
-                </button> 
-            </div> 
-            <h1 class="absolute left-1/2 -translate-x-1/2 font-semibold text-lg"> 
+        <div class="flex items-center justify-center bg-[#F3F3F3] rounded-xl p-2 shadow-sm mb-3 px-6"> 
+            <h1 class="font-semibold text-lg"> 
                 @yield('header', 'Presensi Peserta') 
             </h1> 
         </div>
@@ -119,46 +111,168 @@
             <p class="text-sm text-gray-600 mb-4">Presensi Peserta</p> 
         </div>
 
-        @yield('content')
+        {{-- Flash messages --}}
+        @if(session('success'))
+            <div class="mb-4 px-4 py-3 bg-green-100 text-green-700 rounded-lg">
+                {{ session('success') }}
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="mb-4 px-4 py-3 bg-red-100 text-red-700 rounded-lg">
+                {{ session('error') }}
+            </div>
+        @endif
+        @if(session('info'))
+            <div class="mb-4 px-4 py-3 bg-blue-100 text-blue-700 rounded-lg">
+                {{ session('info') }}
+            </div>
+        @endif
+
         {{-- Tabel --}}
         <div class="overflow-x-auto">
-                <table class="w-full bg-white rounded-lg shadow-sm">
-                    <thead>
-                        <tr class="bg-[#F26E22] text-white">
-                            <th class="py-3 px-4 text-left">Nama Pelatihan</th>
-                            <th class="py-3 px-4 text-left">Waktu Mulai</th>
-                            <th class="py-3 px-4 text-left">Check-In</th>
-                            <th class="py-3 px-4 text-left">Check-Out</th>
-                            <th class="py-3 px-4 text-left">Aksi</th>
+            <table class="w-full bg-white rounded-lg shadow-sm">
+                <thead>
+                    <tr class="bg-[#F26E22] text-white">
+                        <th class="py-3 px-4 text-left">Nama Pelatihan</th>
+                        <th class="py-3 px-4 text-left">Waktu Mulai</th>
+                        <th class="py-3 px-4 text-left">Check-In</th>
+                        <th class="py-3 px-4 text-left">Check-Out</th>
+                        <th class="py-3 px-4 text-left">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($registrations as $registration)
+                        @php
+                            $tna = $registration->tna;
+                            $now = \Carbon\Carbon::now();
+                            $startDate = \Carbon\Carbon::parse($tna->start_date);
+                            $endDate = \Carbon\Carbon::parse($tna->end_date);
+                            $clockInStart = $startDate->copy()->subMinutes(30);
+                            $clockOutEnd = $endDate->copy()->addMinutes(30);
+                            $presence = $registration->presence;
+                            
+                            // Logic untuk Clock-In
+                            $canClockIn = !$presence && $now->between($clockInStart, $endDate);
+                            
+                            // Cek apakah terlambat clock-in (melewati end_date tanpa clock-in)
+                            $isTooLateForClockIn = !$presence && $now->gt($endDate);
+                            
+                            // Logic untuk Clock-Out (dalam window 30 menit)
+                            $canClockOut = $presence && $presence->clock_in && !$presence->clock_out &&
+                                           $now->between($startDate, $clockOutEnd);
+                            
+                            // Cek apakah sudah terlambat clock-out (lewat dari end_date + 30 menit)
+                            $isTooLateForClockOut = $presence && $presence->clock_in && !$presence->clock_out &&
+                                                     $now->gt($clockOutEnd);
+                        @endphp
+
+                        <tr class="border-b {{ $now->between($startDate, $endDate) ? 'bg-yellow-50' : '' }}">
+                            <td class="py-3 px-4">
+                                <div class="flex flex-col">
+                                    <span class="font-semibold">{{ $tna->name }}</span>
+                                    @if($now->between($startDate, $endDate))
+                                        <span class="text-xs text-green-600 font-semibold">● Sedang Berlangsung</span>
+                                    @elseif($now->lt($startDate))
+                                        <span class="text-xs text-blue-600">○ Akan Datang</span>
+                                    @else
+                                        <span class="text-xs text-gray-400">○ Selesai</span>
+                                    @endif
+                                </div>
+                            </td>
+                            <td class="py-3 px-4">
+                                <div class="flex flex-col">
+                                    <span>{{ $startDate->format('d M Y') }}</span>
+                                    <span class="text-xs text-gray-500">{{ $startDate->format('H:i') }} - {{ $endDate->format('H:i') }}</span>
+                                </div>
+                            </td>
+                            <td class="py-3 px-4">
+                                @if($presence && $presence->clock_in)
+                                    <span class="text-green-600 font-semibold">
+                                        ✓ {{ \Carbon\Carbon::parse($presence->clock_in)->timezone('Asia/Jakarta')->format('H:i') }}
+                                    </span>
+                                @elseif($isTooLateForClockIn)
+                                    <span class="text-red-600 font-semibold">
+                                        ✕ Terlambat
+                                    </span>
+                                @else
+                                    <span class="text-gray-400">Belum absen</span>
+                                @endif
+                            </td>
+                            <td class="py-3 px-4">
+                                @if($presence && $presence->clock_out)
+                                    <span class="text-green-600 font-semibold">
+                                        ✓ {{ \Carbon\Carbon::parse($presence->clock_out)->timezone('Asia/Jakarta')->format('H:i') }}
+                                    </span>
+                                @elseif($isTooLateForClockOut)
+                                    <span class="text-red-600 font-semibold">
+                                        ✕ Terlambat
+                                    </span>
+                                @else
+                                    <span class="text-gray-400">Belum absen</span>
+                                @endif
+                            </td>
+                            <td class="py-3 px-4">
+                                {{-- Jika sudah clock-out --}}
+                                @if($presence && $presence->clock_out)
+                                    <span class="px-4 py-2 bg-green-100 text-green-700 text-sm font-semibold rounded-lg">
+                                        ✓ Selesai
+                                    </span>
+
+                                {{-- Jika sudah terlambat untuk clock-out --}}
+                                @elseif($isTooLateForClockOut)
+                                    <span class="px-4 py-2 bg-red-100 text-red-700 text-sm font-semibold rounded-lg">
+                                        ✕ Terlambat Clock-Out
+                                    </span>
+
+                                {{-- Jika clock-in sudah, dan bisa clock-out --}}
+                                @elseif($canClockOut)
+                                    <form method="POST" action="{{ route('presence.update', $presence) }}">
+                                        @csrf
+                                        @method('PUT')
+                                        <button type="submit" class="px-4 py-2 bg-[#F26E22] text-white rounded-lg hover:bg-[#e65c0d] transition">
+                                            Clock-Out
+                                        </button>
+                                    </form>
+
+                                {{-- Jika sudah clock-in tapi belum waktunya clock-out --}}
+                                @elseif($presence && $presence->clock_in && !$canClockOut && !$isTooLateForClockOut)
+                                    <span class="px-4 py-2 bg-blue-100 text-blue-700 text-sm font-semibold rounded-lg">
+                                        Menunggu Clock-Out
+                                    </span>
+
+                                {{-- Jika terlambat untuk clock-in (sudah melewati end_date) --}}
+                                @elseif($isTooLateForClockIn)
+                                    <span class="px-4 py-2 bg-red-100 text-red-700 text-sm font-semibold rounded-lg">
+                                        ✕ Terlambat Clock-In
+                                    </span>
+
+                                {{-- Jika belum clock-in dan boleh clock-in --}}
+                                @elseif($canClockIn)
+                                    <form method="POST" action="{{ route('presence.store') }}">
+                                        @csrf
+                                        <input type="hidden" name="registration_id" value="{{ $registration->id }}">
+                                        <button type="submit" class="px-4 py-2 bg-[#F26E22] text-white rounded-lg hover:bg-[#e65c0d] transition">
+                                            Clock-In
+                                        </button>
+                                    </form>
+
+                                {{-- Tidak tersedia (belum waktunya clock-in) --}}
+                                @else
+                                    <span class="px-4 py-2 bg-gray-100 text-gray-500 text-sm rounded-lg">
+                                        Tidak Tersedia
+                                    </span>
+                                @endif
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
+                    @empty
                         <tr class="border-b">
-                           <td class="py-3 px-4">no entries</td>
-                            <td class="py-3 px-4">no entries</td>
-                            <td class="py-3 px-4">no entries</td>
-                            <td class="py-3 px-4">no entries</td>
-                            <td class="py-3 px-4">
-                                <button class="px-4 py-2 bg-[#F26E22] text-white rounded-lg hover:bg-[#e65c0d] transition">
-                                    Absen
-                                </button>
+                            <td colspan="5" class="py-6 px-4 text-center text-gray-500">
+                                Tidak ada pelatihan yang tersedia untuk presensi
                             </td>
                         </tr>
-                        <tr class="border-b bg-[#F4E5DD]">
-                            <td class="py-3 px-4">no entries</td>
-                            <td class="py-3 px-4">no entries</td>
-                            <td class="py-3 px-4">no entries</td>
-                            <td class="py-3 px-4">no entries</td>
-                            <td class="py-3 px-4">
-                                <button class="px-4 py-2 bg-[#F26E22] text-white rounded-lg hover:bg-[#e65c0d] transition">
-                                    Absen
-                                </button>
-                            </td>
-                        </tr>
-                        <!-- Tambahkan baris lain sesuai kebutuhan -->
-                    </tbody>
-                </table>
-            </div>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </main>
 

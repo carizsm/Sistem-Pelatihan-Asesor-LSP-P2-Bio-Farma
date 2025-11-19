@@ -33,8 +33,9 @@ class QuizQuestion extends Model
         return $this->hasMany(QuizAnswer::class);
     }
 
-    public function traineeAnswers(): HasMany
+    // Alias untuk backward compatibility
+    public function answers(): HasMany
     {
-        return $this->hasMany(TraineeAnswer::class);
+        return $this->quizAnswers();
     }
 }
