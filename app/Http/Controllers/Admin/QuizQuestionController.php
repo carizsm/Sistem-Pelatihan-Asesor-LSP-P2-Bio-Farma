@@ -103,7 +103,7 @@ class QuizQuestionController extends Controller
                 }
             }
 
-            return redirect()->route('admin.quiz-questions.form', $tna)
+            return redirect()->route('admin.quiz_questions.show', $tna)
                 ->with('success', 'Soal kuis berhasil diimpor.');
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal mengimpor soal: ' . $e->getMessage());
