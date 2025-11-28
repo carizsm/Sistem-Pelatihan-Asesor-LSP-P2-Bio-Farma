@@ -6,26 +6,26 @@
     <title>@yield('title', 'Presensi')</title>
     @vite('resources/css/app.css')
 </head>
-<body class="bg-[#EEE8E5] font-sans text-gray-800 flex min-h-screen">
+<body class="bg-[#EEE8E5] font-sans text-gray-800 min-h-screen">
 
     {{-- Sidebar --}}
     <aside 
-        x-data="{ open: true }" 
-        :class="open ? 'w-64' : 'w-20'" 
-        class="bg-[#F3F3F3] h-screen flex flex-col justify-between transition-all duration-300 shadow-sm"
+        x-data 
+        :class="$store.sidebar.open ? 'w-64' : 'w-20'" 
+        class="bg-[#F3F3F3] fixed left-0 top-0 h-screen flex flex-col justify-between transition-all duration-300 shadow-sm z-50 overflow-y-auto"
     >
         {{-- Bagian Atas --}}
         <div>
             {{-- Tombol Toggle Sidebar --}}
             <div class="flex items-center gap-3 px-4 py-3 cursor-pointer">
-                <button @click="open = !open" class="p-2 rounded-lg hover:bg-gray-200 transition">
+                <button @click="$store.sidebar.toggle()" class="p-2 rounded-lg hover:bg-gray-200 transition">
                     <img src="{{ asset('icons/Toggle Sidebar.svg') }}" class="w-7 h-7 shrink-0" alt="toggle">
                 </button>
             </div>
 
             {{-- Logo --}}
             <div class="flex items-center justify-center py-3 border-b border-gray-300">
-                <img x-show="open" src="{{ asset('images/logo-lsp.png') }}" class="w-36" alt="Logo LSP">
+                <img x-show="$store.sidebar.open" src="{{ asset('images/logo-lsp.png') }}" class="w-36" alt="Logo LSP">
             </div>
 
             {{-- Menu Sidebar --}}
@@ -36,7 +36,7 @@
                        class="flex items-center gap-3 px-4 py-2 rounded-lg mx-2 my-1 transition 
                               {{ request()->routeIs('dashboard') ? 'bg-[#F4E5DD] text-[#F26E22] font-semibold' : 'hover:bg-gray-200' }}">
                         <img src="{{ asset('icons/dashboard.svg') }}" class="w-7 h-7 shrink-0" alt="Dashboard">
-                        <span x-show="open">Dashboard</span>
+                        <span x-show="$store.sidebar.open">Dashboard</span>
                     </a>
                 </li>
 
@@ -46,7 +46,7 @@
                        class="flex items-center gap-3 px-4 py-2 rounded-lg mx-2 my-1 transition 
                               {{ request()->routeIs('peserta.presensi') ? 'bg-[#F4E5DD] text-[#F26E22] font-semibold' : 'hover:bg-gray-200' }}">
                         <img src="{{ asset('icons/presensi.svg') }}" class="w-7 h-7 shrink-0" alt="Presensi">
-                        <span x-show="open">Presensi</span>
+                        <span x-show="$store.sidebar.open">Presensi</span>
                     </a>
                 </li>
 
@@ -56,7 +56,7 @@
                        class="flex items-center gap-3 px-4 py-2 rounded-lg mx-2 my-1 transition 
                               {{ request()->routeIs('peserta.evaluasi1') ? 'bg-[#F4E5DD] text-[#F26E22] font-semibold' : 'hover:bg-gray-200' }}">
                         <img src="{{ asset('icons/Evaluasi 1.svg') }}" class="w-7 h-7 shrink-0" alt="Evaluasi 1">
-                        <span x-show="open">Evaluasi 1</span>
+                        <span x-show="$store.sidebar.open">Evaluasi 1</span>
                     </a>
                 </li>
 
@@ -66,7 +66,7 @@
                        class="flex items-center gap-3 px-4 py-2 rounded-lg mx-2 my-1 transition 
                               {{ request()->routeIs('peserta.evaluasi2') ? 'bg-[#F4E5DD] text-[#F26E22] font-semibold' : 'hover:bg-gray-200' }}">
                         <img src="{{ asset('icons/Evaluasi 2.svg') }}" class="w-7 h-7 shrink-0" alt="Evaluasi 2">
-                        <span x-show="open">Evaluasi 2</span>
+                        <span x-show="$store.sidebar.open">Evaluasi 2</span>
                     </a>
                 </li>
             </nav>
@@ -77,14 +77,14 @@
             {{-- Profil --}}
             <div class="flex items-center gap-3">
                 <img src="{{ asset('icons/Avatar.svg') }}" class="w-9 h-9 shrink-0 bg-[#D9E7E9] rounded-lg" alt="User">
-                <div x-show="open">
+                <div x-show="$store.sidebar.open">
                     <p class="text-sm font-semibold">{{ Auth::user()->name ?? 'N/A' }}</p>
                     <p class="text-xs text-gray-500">Peserta</p>
                 </div>
             </div>
 
             {{-- Tombol Logout --}}
-            <form method="POST" action="{{ route('logout') }}" x-show="open">
+            <form method="POST" action="{{ route('logout') }}" x-show="$store.sidebar.open">
                 @csrf
                 <button type="submit" 
                     class="text-red-500 hover:text-red-700 transition" 
@@ -96,7 +96,11 @@
     </aside>
 
     {{-- Konten Utama --}}
-    <main class="flex-1 px-6 pb-6 pt-2">
+    <main 
+        x-data
+        :class="$store.sidebar.open ? 'ml-64' : 'ml-20'"
+        class="flex-1 px-6 pb-6 pt-2 transition-all duration-300"
+    >
 
         {{-- Navbar Atas --}}
         <div class="flex items-center justify-center bg-[#F3F3F3] rounded-xl p-2 shadow-sm mb-3 px-6"> 
@@ -277,5 +281,15 @@
     </main>
 
     <script src="https://unpkg.com/alpinejs" defer></script>
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('sidebar', {
+                open: false,
+                toggle() {
+                    this.open = !this.open;
+                }
+            });
+        });
+    </script>
 </body>
 </html>
