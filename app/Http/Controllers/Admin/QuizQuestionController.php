@@ -7,6 +7,7 @@ use App\Models\Tna;
 use App\Models\QuizQuestion;
 use App\Models\QuizAnswer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -16,14 +17,13 @@ class QuizQuestionController extends Controller
     public function index()
     {
         $tnas = Tna::withCount('quizQuestions')->get();
-        
         return view('admin.quiz_questions.index', compact('tnas'));
     }
 
     public function show(Tna $tna)
     {
         $questions = $tna->quizQuestions()
-            ->with('quizAnswers')
+            ->with('quizAnswers') // Pastikan nama method relasi di model benar ('quizAnswers' atau 'answers')
             ->orderBy('question_number')
             ->get();
             
@@ -36,21 +36,21 @@ class QuizQuestionController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
 
         // Header
-        $sheet->setCellValue('A1', 'Question Number');
-        $sheet->setCellValue('B1', 'Question Text');
-        $sheet->setCellValue('C1', 'Answer 1');
-        $sheet->setCellValue('D1', 'Answer 2');
-        $sheet->setCellValue('E1', 'Answer 3');
-        $sheet->setCellValue('F1', 'Answer 4');
-        $sheet->setCellValue('G1', 'Correct Answer (1-4)');
+        $sheet->setCellValue('A1', 'No');
+        $sheet->setCellValue('B1', 'Pertanyaan');
+        $sheet->setCellValue('C1', 'Jawaban 1');
+        $sheet->setCellValue('D1', 'Jawaban 2');
+        $sheet->setCellValue('E1', 'Jawaban 3');
+        $sheet->setCellValue('F1', 'Jawaban 4');
+        $sheet->setCellValue('G1', 'Kunci Jawaban (1-4)');
 
-        // Example row
+        // Contoh
         $sheet->setCellValue('A2', '1');
-        $sheet->setCellValue('B2', 'Contoh pertanyaan kuis?');
-        $sheet->setCellValue('C2', 'Jawaban A');
-        $sheet->setCellValue('D2', 'Jawaban B');
-        $sheet->setCellValue('E2', 'Jawaban C');
-        $sheet->setCellValue('F2', 'Jawaban D');
+        $sheet->setCellValue('B2', 'Apa ibukota Indonesia?');
+        $sheet->setCellValue('C2', 'Jakarta');
+        $sheet->setCellValue('D2', 'Bandung');
+        $sheet->setCellValue('E2', 'Surabaya');
+        $sheet->setCellValue('F2', 'Medan');
         $sheet->setCellValue('G2', '1');
 
         $writer = new Xlsx($spreadsheet);
@@ -71,42 +71,63 @@ class QuizQuestionController extends Controller
         ]);
 
         try {
-            $file = $request->file('excel_file');
-            $spreadsheet = IOFactory::load($file->getPathname());
-            $sheet = $spreadsheet->getActiveSheet();
-            $rows = $sheet->toArray();
+            // Gunakan Transaction untuk integritas data
+            DB::transaction(function () use ($request, $tna) {
+                
+                // 1. HAPUS SEMUA SOAL LAMA (Mode Replace)
+                $tna->quizQuestions()->delete();
 
-            // Skip header row
-            array_shift($rows);
+                // 2. PROSES FILE BARU
+                $file = $request->file('excel_file');
+                $spreadsheet = IOFactory::load($file->getPathname());
+                $sheet = $spreadsheet->getActiveSheet();
+                $rows = $sheet->toArray();
 
-            foreach ($rows as $row) {
-                if (empty($row[0]) || empty($row[1])) continue; // Skip empty rows
+                // Skip header row
+                array_shift($rows);
 
-                $question = QuizQuestion::create([
-                    'tna_id' => $tna->id,
-                    'question' => $row[1],
-                    'question_number' => $row[0],
-                ]);
+                foreach ($rows as $row) {
+                    if (empty($row[0]) || empty($row[1])) continue;
 
-                // Create answers (columns C to F = index 2 to 5)
-                $answerNumber = 1;
-                for ($i = 2; $i <= 5; $i++) {
-                    if (!empty($row[$i])) {
-                        QuizAnswer::create([
-                            'quiz_question_id' => $question->id,
-                            'answer' => $row[$i],
-                            'answer_order' => $answerNumber,
-                            'is_correct' => ($row[6] ?? 1) == $answerNumber,
-                        ]);
-                        $answerNumber++;
+                    $question = QuizQuestion::create([
+                        'tna_id' => $tna->id,
+                        'question' => $row[1],
+                        'question_number' => $row[0],
+                    ]);
+
+                    // Jawaban (Kolom C-F / Index 2-5)
+                    for ($i = 2; $i <= 5; $i++) {
+                        if (!empty($row[$i])) {
+                            QuizAnswer::create([
+                                'quiz_question_id' => $question->id,
+                                'answer' => $row[$i],
+                                'answer_order' => $i - 1,
+                                'is_correct' => ($row[6] ?? 1) == ($i - 1),
+                            ]);
+                        }
                     }
                 }
-            }
+            });
 
             return redirect()->route('admin.quiz_questions.show', $tna)
-                ->with('success', 'Soal kuis berhasil diimpor.');
+                ->with('success', 'Soal kuis berhasil diproses.');
+
         } catch (\Exception $e) {
             return back()->with('error', 'Gagal mengimpor soal: ' . $e->getMessage());
         }
+    }
+
+    // Method Baru: Hapus Satu Soal
+    public function destroy(QuizQuestion $question)
+    {
+        $question->delete();
+        return back()->with('success', 'Soal berhasil dihapus.');
+    }
+
+    // Method Baru: Hapus Semua Soal
+    public function destroyAll(Tna $tna)
+    {
+        $tna->quizQuestions()->delete();
+        return back()->with('success', 'Semua soal berhasil dihapus.');
     }
 }

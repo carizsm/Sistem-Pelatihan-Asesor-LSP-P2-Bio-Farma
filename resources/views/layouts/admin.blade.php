@@ -16,8 +16,6 @@
         :class="open ? 'w-64' : 'w-20'" 
         class="bg-[#F3F3F3] h-screen flex flex-col justify-between transition-all duration-300 shadow-sm"
     >
-        {{-- ... (Isi sidebar Anda tetap sama) ... --}}
-        
         {{-- Bagian Atas Sidebar --}}
         <div>
             {{-- Tombol Toggle Sidebar --}}
@@ -99,29 +97,19 @@
     </aside>
 
     {{-- Konten Utama --}}
-    {{-- REVISI: Tambahkan h-screen, flex, flex-col. Ini membuat area main tidak ikut scroll --}}
     <main class="flex-1 px-6 pb-6 pt-2 h-screen flex flex-col">
 
         {{-- Navbar Atas (Header Konten) --}}
-        {{-- REVISI: Tambahkan shrink-0 agar navbar tidak mengecil --}}
-        <div class="flex items-center bg-[#F3F3F3] rounded-xl p-2 shadow-sm mb-3 relative mt-0 px-6 shrink-0"> 
-            <div class="flex items-center gap-3"> 
-                <button class="p-1 rounded-lg bg-[#D9E7E9] shadow-sm"> 
-                    <img src="{{ asset('icons/Nav Backwards.svg') }}" class="w-5 h-5" alt="Back"> 
-                </button> 
-                <button class="p-1 rounded-lg bg-[#D9E7E9] shadow-sm"> 
-                    <img src="{{ asset('icons/Nav Forward.svg') }}" class="w-5 h-5" alt="Forward"> 
-                </button> 
-            </div> 
-            <h1 class="absolute left-1/2 -translate-x-1/2 font-semibold text-lg"> 
+        <div class="flex items-center justify-center bg-[#F3F3F3] rounded-xl p-3 shadow-sm mb-3 relative mt-0 px-6 shrink-0 h-14"> 
+            
+            {{-- REVISI: Tombol Back & Forward dihapus --}}
+            
+            <h1 class="font-semibold text-lg text-gray-800"> 
                 @yield('page_title', 'Admin Dashboard') 
             </h1> 
         </div>
 
-        {{-- 
-          Area Konten Utama
-          REVISI: Bungkus @yield('content') dalam div yang bisa scroll (overflow-y-auto)
-        --}}
+        {{-- Area Konten Utama --}}
         <div class="mt-4 flex-1 overflow-y-auto">
             @yield('content')
         </div>

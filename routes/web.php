@@ -36,6 +36,8 @@ Route::prefix('admin')->middleware(['auth'])->name('admin.')->group(function () 
     Route::get('quiz-questions/download-template', [QuizQuestionController::class, 'downloadTemplate'])->name('quiz_questions.downloadTemplate');
     Route::get('quiz-questions/{tna}/kelola', [QuizQuestionController::class, 'show'])->name('quiz_questions.show');
     Route::post('quiz-questions/{tna}/import', [QuizQuestionController::class, 'importExcel'])->name('quiz_questions.import');
+    Route::delete('quiz-questions/{question}', [QuizQuestionController::class, 'destroy'])->name('quiz_questions.destroy');
+    Route::delete('quiz-questions/{tna}/destroy-all', [QuizQuestionController::class, 'destroyAll'])->name('quiz_questions.destroyAll');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
