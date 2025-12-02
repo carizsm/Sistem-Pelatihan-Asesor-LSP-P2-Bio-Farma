@@ -52,7 +52,7 @@
                 {{-- Langkah 1 --}}
                 <div class="mb-8 p-4 bg-lsp-bg rounded-lg">
                     <p class="text-md font-semibold text-gray-700 mb-2">Langkah 1: Unduh template untuk memastikan format file sudah benar</p>
-                    <a href="{{ route('admin.quiz_questions.downloadTemplate') }}" class="inline-block w-full sm:w-72 text-center bg-sky-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-sky-700 transition duration-200">
+                    <a href="{{ route('admin.quiz_questions.downloadTemplate') }}" class="inline-block w-full sm:w-72 text-center bg-green-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-green-700 transition duration-200">
                         Unduh Template Kosong
                     </a>
                 </div>
