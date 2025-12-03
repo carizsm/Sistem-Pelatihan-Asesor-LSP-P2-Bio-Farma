@@ -123,7 +123,7 @@
                         </button>
                     @else
                         <a href="{{ route('peserta.evaluasi2') }}"
-                            class="inline-block bg-gray-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-600 transition whitespace-nowrap">
+                           class="inline-flex items-center justify-center bg-gray-500 text-white text-sm px-4 h-9 rounded-lg font-semibold hover:bg-gray-600 transition whitespace-nowrap leading-none">
                             Kembali
                         </a>
                     @endif
@@ -489,6 +489,7 @@
 
                 init() {
                     @if(!isset($attempt))
+                        // MODE PENGERJAAN
                         // Load saved answers from localStorage on init
                         const savedAnswers = localStorage.getItem('quiz_{{ $registration->id }}_{{ $type }}');
                         if (savedAnswers) {
@@ -510,10 +511,16 @@
                         });
                         this.updateAnsweredCount();
                     @else
-                        // Mode review: restore last viewed page
-                        const savedPage = localStorage.getItem('quiz_{{ $registration->id }}_{{ $type }}_review_page');
-                        if (savedPage !== null) {
-                            this.currentPage = parseInt(savedPage);
+                        // MODE REVIEW
+                        // Restore last viewed page dari localStorage
+                        const savedReviewPage = localStorage.getItem('quiz_{{ $registration->id }}_{{ $type }}_review_page');
+                        if (savedReviewPage !== null) {
+                            this.currentPage = parseInt(savedReviewPage);
+                        }
+                        
+                        // Pastikan currentPage tidak melebihi batas
+                        if (this.currentPage >= this.totalPages) {
+                            this.currentPage = 0;
                         }
                     @endif
                 },
@@ -541,7 +548,7 @@
                 },
 
                 saveCurrentPage() {
-                    // Save current page to localStorage
+                    // Save current page to localStorage (untuk mode pengerjaan DAN review)
                     @if(!isset($attempt))
                         localStorage.setItem('quiz_{{ $registration->id }}_{{ $type }}_page', this.currentPage);
                     @else
@@ -567,7 +574,7 @@
                 nextPage() {
                     if (this.currentPage < this.totalPages - 1) {
                         this.currentPage++;
-                        this.saveCurrentPage(); // Save saat pindah halaman
+                        this.saveCurrentPage();
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
                 },
@@ -575,14 +582,14 @@
                 prevPage() {
                     if (this.currentPage > 0) {
                         this.currentPage--;
-                        this.saveCurrentPage(); // Save saat pindah halaman
+                        this.saveCurrentPage();
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
                 },
 
                 goToPage(index) {
                     this.currentPage = index;
-                    this.saveCurrentPage(); // Save saat jump ke halaman tertentu
+                    this.saveCurrentPage();
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 },
 
@@ -607,14 +614,26 @@
 
         // Auto-save on page unload (backup)
         window.addEventListener('beforeunload', function() {
-            const quizData = Alpine.raw(Alpine.$data(document.querySelector('[x-data]')));
-            if (quizData && quizData.answers && !{{ isset($attempt) ? 'true' : 'false' }}) {
-                localStorage.setItem('quiz_{{ $registration->id }}_{{ $type }}', JSON.stringify(quizData.answers));
-                localStorage.setItem('quiz_{{ $registration->id }}_{{ $type }}_page', quizData.currentPage);
-            } else if (quizData && {{ isset($attempt) ? 'true' : 'false' }}) {
-                // Save review page position
-                localStorage.setItem('quiz_{{ $registration->id }}_{{ $type }}_review_page', quizData.currentPage);
-            }
+            const mainElement = document.querySelector('[x-data*="quizNavigation"]');
+            if (!mainElement) return;
+            
+            const quizData = Alpine.$data(mainElement);
+            if (!quizData) return;
+
+            @if(!isset($attempt))
+                // Mode pengerjaan: save answers dan page
+                if (quizData.answers) {
+                    localStorage.setItem('quiz_{{ $registration->id }}_{{ $type }}', JSON.stringify(quizData.answers));
+                }
+                if (quizData.currentPage !== undefined) {
+                    localStorage.setItem('quiz_{{ $registration->id }}_{{ $type }}_page', quizData.currentPage);
+                }
+            @else
+                // Mode review: hanya save page position
+                if (quizData.currentPage !== undefined) {
+                    localStorage.setItem('quiz_{{ $registration->id }}_{{ $type }}_review_page', quizData.currentPage);
+                }
+            @endif
         });
     </script>
 

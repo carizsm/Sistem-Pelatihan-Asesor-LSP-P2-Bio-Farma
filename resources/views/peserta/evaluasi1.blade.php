@@ -141,16 +141,16 @@
 
                         @if($hasFeedback)
                             <a href="{{ route('evaluasi1.review', $registration) }}" 
-                               class="px-4 py-2 bg-[#17A2B8] text-white text-sm font-semibold rounded-md hover:bg-[#138496] transition-all duration-200">
+                               class="px-4 py-2 bg-[#17A2B8] text-white text-sm font-semibold rounded-md hover:bg-[#138496] transition-all duration-200 whitespace-nowrap min-w-[180px] text-center leading-none">
                                 Review
                             </a>
                         @elseif(!$canAccess)
-                            <span class="px-4 py-2 bg-gray-100 text-gray-500 text-sm font-semibold rounded-md">
+                            <span class="px-4 py-2 bg-gray-100 text-gray-500 text-sm font-semibold rounded-md whitespace-nowrap min-w-[180px] text-center leading-none">
                                 Tersedia setelah {{ \Carbon\Carbon::parse($tna->end_date)->format('d M Y H:i') }}
                             </span>
                         @else
                             <a href="{{ route('evaluasi1.form', $registration) }}" 
-                               class="card-button bg-[#F26E22] hover:bg-[#d65c1c] text-white text-sm font-semibold px-4 py-2 rounded-md transition shrink-0">
+                               class="px-4 py-2 bg-[#F26E22] hover:bg-[#d65c1c] text-white text-sm font-semibold rounded-md transition whitespace-nowrap min-w-[180px] text-center leading-none">
                                Kerjakan
                             </a>
                         @endif

@@ -99,23 +99,30 @@
     >
         <div class="flex-1 px-6 pb-6 pt-2 flex flex-col space-y-3">
             {{-- Navbar Atas --}}
-            <div class="flex items-center justify-between bg-[#F3F3F3] rounded-xl p-2 shadow-sm mb-0 mt-0">
-                <h1 class="font-semibold text-lg text-center flex-1">
-                    Evaluasi 1 - {{ $tna->name }}
-                    @if(isset($feedback))
-                        <span class="text-sm text-green-600">(Review)</span>
-                    @endif
-                </h1>
+            <div class="flex items-center bg-[#F3F3F3] rounded-xl p-2 shadow-sm mb-0 mt-0">
+                {{-- Spacer kiri untuk balance --}}
+                <div class="w-32"></div>
 
-                <div class="px-6"> 
+                {{-- Title di tengah --}}
+                <div class="flex-1 text-center">
+                    <h1 class="font-semibold text-lg">
+                        Evaluasi 1 - {{ $tna->name }}
+                        @if(isset($feedback))
+                            <span class="text-lg text-green-600 font-normal">(Review)</span>
+                        @endif
+                    </h1>
+                </div>
+
+                {{-- Button kanan --}}
+                <div class="w-32 flex justify-end items-center"> 
                     @if(!isset($feedback))
                         <button type="submit" form="feedback-form"
-                            class="bg-[#F26E22] text-white text-sm px-3 py-1 rounded-lg font-semibold hover:bg-[#d65c1c] transition whitespace-nowrap">
+                            class="inline-flex items-center justify-center bg-[#F26E22] text-white text-sm px-3 h-8 rounded-lg font-semibold hover:bg-[#d65c1c] transition whitespace-nowrap leading-none">
                             Selesaikan
                         </button>
                     @else
                         <a href="{{ route('peserta.evaluasi1') }}"
-                            class="bg-gray-500 text-white text-sm px-3 py-1 rounded-lg font-semibold hover:bg-gray-600 transition whitespace-nowrap">
+                           class="inline-flex items-center justify-center bg-gray-500 text-white text-sm px-3 h-8 rounded-lg font-semibold hover:bg-gray-600 transition whitespace-nowrap leading-none">
                             Kembali
                         </a>
                     @endif
@@ -236,6 +243,80 @@
                     this.open = !this.open;
                 }
             });
+        });
+
+        // Alpine component untuk auto-save feedback
+        document.addEventListener('DOMContentLoaded', function() {
+            @if(!isset($feedback))
+                // MODE PENGISIAN - Enable auto-save
+                const form = document.getElementById('feedback-form');
+                const registrationId = {{ $registration->id }};
+                const storageKey = `feedback_${registrationId}`;
+
+                // Restore saved data dari localStorage
+                function restoreSavedData() {
+                    const savedData = localStorage.getItem(storageKey);
+                    if (savedData) {
+                        const answers = JSON.parse(savedData);
+                        Object.keys(answers).forEach(scoreField => {
+                            const radio = document.querySelector(`input[name="${scoreField}"][value="${answers[scoreField]}"]`);
+                            if (radio) {
+                                radio.checked = true;
+                            }
+                        });
+                        console.log('✅ Data feedback berhasil di-restore dari localStorage');
+                    }
+                }
+
+                // Save data ke localStorage setiap ada perubahan
+                function saveToLocalStorage() {
+                    const formData = new FormData(form);
+                    const answers = {};
+                    
+                    for (let [key, value] of formData.entries()) {
+                        if (key.startsWith('score_')) {
+                            answers[key] = value;
+                        }
+                    }
+                    
+                    localStorage.setItem(storageKey, JSON.stringify(answers));
+                    console.log('💾 Data feedback disimpan ke localStorage', answers);
+                }
+
+                // Event listener untuk semua radio button
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.addEventListener('change', saveToLocalStorage);
+                });
+
+                // Auto-save sebelum page unload
+                window.addEventListener('beforeunload', saveToLocalStorage);
+
+                // Submit handler - clear localStorage setelah submit
+                form.addEventListener('submit', function() {
+                    localStorage.removeItem(storageKey);
+                    console.log('🗑️ Data feedback dihapus dari localStorage (submitted)');
+                });
+
+                // Restore data saat halaman dimuat
+                restoreSavedData();
+
+                // Visual indicator untuk auto-save (optional)
+                let saveIndicator = document.createElement('div');
+                saveIndicator.id = 'save-indicator';
+                saveIndicator.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg opacity-0 transition-opacity duration-300';
+                saveIndicator.textContent = '✓ Tersimpan otomatis';
+                document.body.appendChild(saveIndicator);
+
+                // Show indicator saat save
+                const originalSave = saveToLocalStorage;
+                saveToLocalStorage = function() {
+                    originalSave();
+                    saveIndicator.style.opacity = '1';
+                    setTimeout(() => {
+                        saveIndicator.style.opacity = '0';
+                    }, 2000);
+                };
+            @endif
         });
     </script>
 </body>
