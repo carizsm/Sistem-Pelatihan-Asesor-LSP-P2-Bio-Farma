@@ -19,7 +19,7 @@ class UserController extends Controller
     {
         // Cache users list for 60 seconds
         $users = Cache::remember('admin_users_list', 60, function () {
-            return User::with(['position', 'unit'])->get();
+            return User::with(['position', 'unit'])->paginate(10);
         });
         
         return view('admin.users.index', compact('users'));

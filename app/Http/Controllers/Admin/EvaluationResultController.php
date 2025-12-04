@@ -17,7 +17,7 @@ class EvaluationResultController extends Controller
     {
         // Cache feedback results index for 60 seconds
         $tnas = Cache::remember('admin_feedback_results_index', 60, function () {
-            return Tna::withCount('registrations')->get();
+            return Tna::withCount('registrations')->paginate(10);
         });
         
         return view('admin.feedback_results.index', compact('tnas'));
@@ -67,7 +67,7 @@ class EvaluationResultController extends Controller
         $tnas = Cache::remember('admin_quiz_results_index', 60, function () {
             return Tna::withCount('registrations')
                         ->with(['registrations.quizAttempts'])
-                        ->get();
+                        ->paginate(10);
         });
 
         // REVISI: Hitung statistik untuk setiap TNA

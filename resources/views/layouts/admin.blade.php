@@ -6,6 +6,58 @@
     <title>@yield('title', 'Admin Dashboard') - LSP Farmasi</title>
     
     @vite('resources/css/app.css')
+
+    <style>
+        /* Gaya Default untuk semua link pagination (sebelum diklik/aktif) 
+           Warna background: Oranye Tua (#EA580C / bg-orange-600)
+           Warna teks: Putih
+        */
+        nav[role="navigation"] a,
+        nav[role="navigation"] span[aria-disabled="true"] {
+            background-color: #EA580C !important; /* Oranye Tua */
+            border-color: #EA580C !important;
+            color: white !important;
+        }
+
+        /* Gaya untuk Halaman Aktif (halaman yang sedang dipilih)
+           Warna background: Oranye Muda (#F97316 / bg-orange-500)
+           Warna teks: Putih
+        */
+        nav[role="navigation"] span[aria-current="page"] > span {
+            background-color: #F97316 !important; /* Oranye Muda */
+            border-color: #F97316 !important;
+            color: white !important;
+        }
+
+        /* Gaya Hover (saat kursor diarahkan)
+           Warna background: Oranye Muda (#F97316) - Memberikan efek interaktif
+        */
+        nav[role="navigation"] a:hover {
+            background-color: #F97316 !important; /* Oranye Muda */
+            border-color: #F97316 !important;
+            color: white !important;
+        }
+
+        /* Mengubah warna ring fokus (saat diklik/tab) */
+        nav[role="navigation"] a:focus,
+        nav[role="navigation"] button:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.5) !important;
+            border-color: #F97316 !important;
+        }
+
+        /* Ikon panah (SVG) di dalam tombol Next/Prev agar tetap putih */
+        nav[role="navigation"] svg {
+            color: white !important; 
+            fill: currentColor;
+        }
+        
+        /* Menangani tombol disabled (seperti Prev di halaman 1) agar tetap terlihat tapi pudar */
+        nav[role="navigation"] span[aria-disabled="true"] {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
     
 </head>
 <body class="bg-[#EEE8E5] font-sans text-gray-800 flex min-h-screen">

@@ -31,7 +31,6 @@
             <table class="min-w-full leading-normal">
                 <thead>
                     <tr>
-                        {{-- REVISI: Tambahkan 'sticky top-0 z-10' agar header tabel tetap di atas saat scroll --}}
                         <th class="sticky top-0 z-10 px-5 py-3 border-b-2 border-gray-200 bg-orange-500 text-left text-xs font-semibold text-white uppercase tracking-wider">
                             NIK
                         </th>
@@ -85,5 +84,11 @@
                 </tbody>
             </table>
         </div>
+
+        {{-- REVISI: Menambahkan Navigasi Pagination --}}
+        <div class="p-4">
+            {{ $users->links() }}
+        </div>
+
     </div>
 @endsection

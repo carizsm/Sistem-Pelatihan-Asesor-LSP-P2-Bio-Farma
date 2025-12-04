@@ -21,7 +21,7 @@ class QuizQuestionController extends Controller
     {
         // Cache quiz questions index for 60 seconds
         $tnas = Cache::remember('admin_quiz_questions_index', 60, function () {
-            return Tna::withCount('quizQuestions')->get();
+            return Tna::withCount('quizQuestions')->paginate(10);
         });
         
         return view('admin.quiz_questions.index', compact('tnas'));

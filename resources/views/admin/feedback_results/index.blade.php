@@ -29,18 +29,16 @@
                     @forelse ($tnas as $tna)
                     <tr class="hover:bg-gray-50">
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-gray-800">
-                            {{-- REVISI: Menggunakan $tna->name --}}
                             {{ $tna->name ?? 'N/A' }}
                         </td>
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-gray-800">
-                            {{-- REVISI: Menggunakan $tna->start_date --}}
                             {{ $tna->start_date ? \Carbon\Carbon::parse($tna->start_date)->format('d/m/Y') : 'N/A' }}
                         </td>
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-gray-800">
                             {{ $tna->registrations_count }}
                         </td>
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-center">
-                            <a href="{{ route('admin.feedback_results.show', $tna->id) }}" class="inline-block bg-orange-500 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow hover:bg-orange-600 transition duration-200">
+                            <a href="{{ route('admin.feedback_results.show', $tna->id) }}" class="inline-block bg-orange-500 text-white text-sm font-semibold py-1.5 px-4 rounded-lg shadow hover:bg-orange-600 transition duration-200">
                                 Lihat Rekap
                             </a>
                         </td>
@@ -55,5 +53,11 @@
                 </tbody>
             </table>
         </div>
+
+        {{-- TAMBAHAN: Bagian Pagination --}}
+        <div class="p-4">
+            {{ $tnas->links() }}
+        </div>
+        
     </div>
 @endsection
