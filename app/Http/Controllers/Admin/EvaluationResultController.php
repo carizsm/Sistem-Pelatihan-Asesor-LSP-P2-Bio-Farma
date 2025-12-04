@@ -7,6 +7,7 @@ use App\Models\Tna;
 use App\Models\FeedbackResult;
 use App\Models\QuizAttempt;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class EvaluationResultController extends Controller
 {
@@ -14,18 +15,26 @@ class EvaluationResultController extends Controller
     
     public function indexFeedback()
     {
-        $tnas = Tna::withCount('registrations')->get();
+        // Cache feedback results index for 60 seconds
+        $tnas = Cache::remember('admin_feedback_results_index', 60, function () {
+            return Tna::withCount('registrations')->get();
+        });
         
         return view('admin.feedback_results.index', compact('tnas'));
     }
 
     public function showFeedbackReport(Tna $tna)
     {
-        $feedbacks = FeedbackResult::whereHas('registration', function($query) use ($tna) {
-                $query->where('tna_id', $tna->id);
-            })
-            ->with('registration.user')
-            ->get();
+        $tnaId = $tna->id;
+        
+        // Cache feedback report for 60 seconds
+        $feedbacks = Cache::remember("admin_feedback_report_tna_{$tnaId}", 60, function () use ($tna) {
+            return FeedbackResult::whereHas('registration', function($query) use ($tna) {
+                    $query->where('tna_id', $tna->id);
+                })
+                ->with('registration.user')
+                ->get();
+        });
 
         // Calculate averages for all 15 scores
         $averages = [];
@@ -54,10 +63,12 @@ class EvaluationResultController extends Controller
 
     public function indexQuiz()
     {
-        // REVISI: Kita perlu memuat relasi untuk menghitung statistik
-        $tnas = Tna::withCount('registrations')
-                    ->with(['registrations.quizAttempts']) // Eager load semua attempts terkait
-                    ->get();
+        // Cache quiz results index for 60 seconds
+        $tnas = Cache::remember('admin_quiz_results_index', 60, function () {
+            return Tna::withCount('registrations')
+                        ->with(['registrations.quizAttempts'])
+                        ->get();
+        });
 
         // REVISI: Hitung statistik untuk setiap TNA
         $tnas->each(function ($tna) {
@@ -81,21 +92,27 @@ class EvaluationResultController extends Controller
 
     public function showQuizReport(Tna $tna)
     {
-        // Get Pre-Test attempts
-        $preTestAttempts = QuizAttempt::whereHas('registration', function($query) use ($tna) {
-                $query->where('tna_id', $tna->id);
-            })
-            ->where('type', 'pre-test')
-            ->with('registration.user')
-            ->get();
+        $tnaId = $tna->id;
+        
+        // Cache pre-test attempts for 60 seconds
+        $preTestAttempts = Cache::remember("admin_quiz_pretest_tna_{$tnaId}", 60, function () use ($tna) {
+            return QuizAttempt::whereHas('registration', function($query) use ($tna) {
+                    $query->where('tna_id', $tna->id);
+                })
+                ->where('type', 'pre-test')
+                ->with('registration.user')
+                ->get();
+        });
 
-        // Get Post-Test attempts
-        $postTestAttempts = QuizAttempt::whereHas('registration', function($query) use ($tna) {
-                $query->where('tna_id', $tna->id);
-            })
-            ->where('type', 'post-test')
-            ->with('registration.user')
-            ->get();
+        // Cache post-test attempts for 60 seconds
+        $postTestAttempts = Cache::remember("admin_quiz_posttest_tna_{$tnaId}", 60, function () use ($tna) {
+            return QuizAttempt::whereHas('registration', function($query) use ($tna) {
+                    $query->where('tna_id', $tna->id);
+                })
+                ->where('type', 'post-test')
+                ->with('registration.user')
+                ->get();
+        });
 
         $passingScore = $tna->passing_score ?? 70;
 

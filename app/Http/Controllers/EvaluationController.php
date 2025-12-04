@@ -9,6 +9,8 @@ use App\Models\QuizAttempt;
 use App\Models\TraineeAnswer;
 use App\Models\Registration;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 
 class EvaluationController extends Controller
@@ -17,18 +19,22 @@ class EvaluationController extends Controller
     
     public function indexFeedback()
     {
-        $user = auth()->user();
+        $user = Auth::user();
+        $userId = $user->id;
         
-        $registrations = Registration::where('user_id', $user->id)
-            ->with(['tna', 'feedbackResult'])
-            ->get();
+        // Cache feedback evaluations for 60 seconds
+        $registrations = Cache::remember("evaluasi1_registrations_user_{$userId}", 60, function () use ($userId) {
+            return Registration::where('user_id', $userId)
+                ->with(['tna', 'feedbackResult'])
+                ->get();
+        });
         
         return view('peserta.evaluasi1', compact('registrations'));
     }
 
     public function showFeedbackForm(Registration $registration)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         
         // Check ownership
         if ($registration->user_id !== $user->id) {
@@ -36,6 +42,8 @@ class EvaluationController extends Controller
                 ->with('error', 'Anda tidak memiliki akses ke registrasi ini.');
         }
 
+        // Eager load tna and feedbackResult
+        $registration->load('tna', 'feedbackResult');
         $tna = $registration->tna;
         $now = Carbon::now();
 
@@ -58,7 +66,7 @@ class EvaluationController extends Controller
 
     public function storeFeedback(Request $request, Registration $registration)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         
         // Check ownership
         if ($registration->user_id !== $user->id) {
@@ -103,6 +111,13 @@ class EvaluationController extends Controller
             'score_14' => $validated['score_14'],
             'score_15' => $validated['score_15'],
         ]);
+        
+        // Clear related caches
+        $tnaId = $registration->tna_id;
+        Cache::forget("evaluasi1_registrations_user_{$user->id}");
+        Cache::forget("dashboard_registrations_user_{$user->id}");
+        Cache::forget('admin_feedback_results_index');
+        Cache::forget("admin_feedback_report_tna_{$tnaId}");
 
         return redirect()->route('peserta.evaluasi1')
             ->with('success', 'Feedback berhasil disimpan. Terima kasih!');
@@ -110,7 +125,7 @@ class EvaluationController extends Controller
 
     public function reviewFeedback(Registration $registration)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         
         // Check ownership
         if ($registration->user_id !== $user->id) {
@@ -118,6 +133,9 @@ class EvaluationController extends Controller
                 ->with('error', 'Anda tidak memiliki akses ke registrasi ini.');
         }
 
+        // Eager load tna and feedbackResult
+        $registration->load('tna', 'feedbackResult');
+        
         // Check if feedback exists
         $feedback = $registration->feedbackResult;
         if (!$feedback) {
@@ -135,11 +153,15 @@ class EvaluationController extends Controller
 
     public function indexQuiz()
     {
-        $user = auth()->user();
+        $user = Auth::user();
+        $userId = $user->id;
         
-        $registrations = Registration::where('user_id', $user->id)
-            ->with(['tna', 'quizAttempts'])
-            ->get();
+        // Cache quiz evaluations for 60 seconds
+        $registrations = Cache::remember("evaluasi2_registrations_user_{$userId}", 60, function () use ($userId) {
+            return Registration::where('user_id', $userId)
+                ->with(['tna', 'quizAttempts'])
+                ->get();
+        });
         
         return view('peserta.evaluasi2', compact('registrations'));
     }
@@ -154,7 +176,7 @@ class EvaluationController extends Controller
         //     'message' => 'Method showQuizForm dipanggil!'
         // ]);
 
-        $user = auth()->user();
+        $user = Auth::user();
         $now = Carbon::now();
 
         // Check ownership
@@ -169,6 +191,8 @@ class EvaluationController extends Controller
                 ->with('error', 'Tipe kuis tidak valid.');
         }
 
+        // Eager load tna
+        $registration->load('tna');
         $tna = $registration->tna;
         $startDate = Carbon::parse($tna->start_date);
         $endDate = Carbon::parse($tna->end_date);
@@ -216,7 +240,7 @@ class EvaluationController extends Controller
 
     public function storeQuiz(Request $request, Registration $registration, string $type)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         
         // Check ownership
         if ($registration->user_id !== $user->id) {
@@ -229,7 +253,17 @@ class EvaluationController extends Controller
         ]);
 
         $answers = $request->answers;
+        
+        // Eager load tna
+        $registration->load('tna');
         $tna = $registration->tna;
+
+        // FIXED: Load all questions with answers BEFORE the loop to prevent N+1
+        $questionIds = array_keys($answers);
+        $questions = QuizQuestion::whereIn('id', $questionIds)
+            ->with('quizAnswers')
+            ->get()
+            ->keyBy('id');
 
         // ⚠️ PERBAIKAN DI SINI! Tambahkan registration_id
         $quizAttempt = QuizAttempt::create([
@@ -243,8 +277,10 @@ class EvaluationController extends Controller
         $correctAnswers = 0;
 
         foreach ($answers as $questionId => $answerId) {
-            $question = QuizQuestion::find($questionId);
-            $answer = $question->quizAnswers()->where('id', $answerId)->first();
+            $question = $questions->get($questionId);
+            if (!$question) continue;
+            
+            $answer = $question->quizAnswers->firstWhere('id', $answerId);
             
             $isCorrect = $answer && $answer->is_correct;
             
@@ -273,6 +309,14 @@ class EvaluationController extends Controller
                 'status' => $score >= $passingScore ? 'lulus' : 'tidak lulus',
             ]);
         }
+        
+        // Clear related caches
+        $tnaId = $registration->tna_id;
+        Cache::forget("evaluasi2_registrations_user_{$user->id}");
+        Cache::forget("dashboard_registrations_user_{$user->id}");
+        Cache::forget('admin_quiz_results_index');
+        Cache::forget("admin_quiz_pretest_tna_{$tnaId}");
+        Cache::forget("admin_quiz_posttest_tna_{$tnaId}");
 
         return redirect()->route('peserta.evaluasi2')
             ->with('success', 'Kuis berhasil diselesaikan. Skor Anda: ' . number_format($score, 2) . '%');
@@ -280,7 +324,7 @@ class EvaluationController extends Controller
 
     public function reviewQuiz(Registration $registration, string $type)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         
         // Check ownership
         if ($registration->user_id !== $user->id) {
@@ -294,6 +338,9 @@ class EvaluationController extends Controller
                 ->with('error', 'Tipe kuis tidak valid.');
         }
 
+        // Eager load tna
+        $registration->load('tna');
+        
         // Get quiz attempt
         $attempt = QuizAttempt::where('registration_id', $registration->id)
             ->where('type', $type)

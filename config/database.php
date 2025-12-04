@@ -16,7 +16,7 @@ return [
     |
     */
 
-    'default' => 'pgsql',
+    'default' => env('DB_CONNECTION', 'pgsql'),
 
     /*
     |--------------------------------------------------------------------------
@@ -85,7 +85,7 @@ return [
 
         'pgsql' => [
             'driver' => 'pgsql',
-            'url' => env('DB_URL'),
+            'url' => null,
             'host' => 'db.rhnyylayqtehxkkdlxdq.supabase.co',
             'port' => '5432',
             'database' => 'postgres',
@@ -96,6 +96,13 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => 'require',
+
+            // Paksa TCP Keepalives dan Timeout yang lebih lama
+            'options' => [
+                PDO::ATTR_TIMEOUT => 60,
+                PDO::ATTR_PERSISTENT => false,
+            ],
+            'timeout' => 60,
         ],
 
         'sqlsrv' => [

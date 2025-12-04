@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Traits\ClearsRelatedCache;
 use App\Models\Tna;
 use App\Models\QuizQuestion;
 use App\Models\QuizAnswer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -14,18 +16,28 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class QuizQuestionController extends Controller
 {
+    use ClearsRelatedCache;
     public function index()
     {
-        $tnas = Tna::withCount('quizQuestions')->get();
+        // Cache quiz questions index for 60 seconds
+        $tnas = Cache::remember('admin_quiz_questions_index', 60, function () {
+            return Tna::withCount('quizQuestions')->get();
+        });
+        
         return view('admin.quiz_questions.index', compact('tnas'));
     }
 
     public function show(Tna $tna)
     {
-        $questions = $tna->quizQuestions()
-            ->with('quizAnswers') // Pastikan nama method relasi di model benar ('quizAnswers' atau 'answers')
-            ->orderBy('question_number')
-            ->get();
+        $tnaId = $tna->id;
+        
+        // Cache quiz questions for specific TNA for 60 seconds
+        $questions = Cache::remember("admin_quiz_questions_tna_{$tnaId}", 60, function () use ($tna) {
+            return $tna->quizQuestions()
+                ->with('quizAnswers')
+                ->orderBy('question_number')
+                ->get();
+        });
             
         return view('admin.quiz_questions.form', compact('tna', 'questions'));
     }
@@ -108,6 +120,18 @@ class QuizQuestionController extends Controller
                     }
                 }
             });
+            
+            // Clear related caches
+            $this->clearRelatedCaches([
+                'admin_quiz_questions_index',
+                "admin_quiz_questions_tna_{$tna->id}",
+                'admin_quiz_results_index',
+            ]);
+            
+            // Clear participant caches
+            foreach ($tna->registrations as $registration) {
+                $this->clearUserCaches($registration->user_id);
+            }
 
             return redirect()->route('admin.quiz_questions.show', $tna)
                 ->with('success', 'Soal kuis berhasil diproses.');
@@ -120,7 +144,16 @@ class QuizQuestionController extends Controller
     // Method Baru: Hapus Satu Soal
     public function destroy(QuizQuestion $question)
     {
+        $tnaId = $question->tna_id;
+        
         $question->delete();
+        
+        // Clear related caches
+        $this->clearRelatedCaches([
+            'admin_quiz_questions_index',
+            "admin_quiz_questions_tna_{$tnaId}",
+        ]);
+        
         return back()->with('success', 'Soal berhasil dihapus.');
     }
 
@@ -128,6 +161,16 @@ class QuizQuestionController extends Controller
     public function destroyAll(Tna $tna)
     {
         $tna->quizQuestions()->delete();
+        
+        // Clear related caches
+        $this->clearRelatedCaches([
+            'admin_quiz_questions_index',
+            "admin_quiz_questions_tna_{$tna->id}",
+            'admin_quiz_results_index',
+            "admin_quiz_pretest_tna_{$tna->id}",
+            "admin_quiz_posttest_tna_{$tna->id}",
+        ]);
+        
         return back()->with('success', 'Semua soal berhasil dihapus.');
     }
 }

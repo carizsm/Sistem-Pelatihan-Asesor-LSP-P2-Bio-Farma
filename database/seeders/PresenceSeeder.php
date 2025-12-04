@@ -42,7 +42,12 @@ class PresenceSeeder extends Seeder
 
             // 90% chance trainee hadir
             if (rand(1, 100) <= 90) {
-                Presence::factory()->create([
+                // Skip if presence already exists for this registration
+                if ($registration->presence) {
+                    continue;
+                }
+
+                Presence::create([
                     'registration_id' => $registration->id,
                     'clock_in' => $clockIn,
                     'clock_out' => $clockOut,

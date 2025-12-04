@@ -3,23 +3,30 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use App\Models\Registration;
+use App\Models\User;
 
 class DashboardController extends Controller {
     public function index()
     {
         // Eager-load position and unit untuk user yang sedang login
-        $user = Auth::user()->load(['position', 'unit']);
+        /** @var User $user */
+        $user = Auth::user();
+        $user->load(['position', 'unit']);
+        $userId = $user->id;
 
-        // Eager-load all registration-related data to avoid N+1
-        $registrations = Registration::where('user_id', $user->id)
-            ->with([
-                'tna',
-                'quizAttempts',
-                'feedbackResult',
-                'presence',
-            ])
-            ->get();
+        // Cache registrations data for 60 seconds
+        $registrations = Cache::remember("dashboard_registrations_user_{$userId}", 60, function () use ($userId) {
+            return Registration::where('user_id', $userId)
+                ->with([
+                    'tna',
+                    'quizAttempts',
+                    'feedbackResult',
+                    'presence',
+                ])
+                ->get();
+        });
 
         // Filter tasks yang memiliki pekerjaan yang belum selesai
         $tasks = $registrations->filter(function ($registration) {

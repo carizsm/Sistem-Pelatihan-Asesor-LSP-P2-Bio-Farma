@@ -45,6 +45,7 @@ class UserSeeder extends Seeder
                 'email' => 'ahmad.fauzi@biofarma.com',
                 'position_id' => $lspPosition->id,
                 'unit_id' => $lspUnit->id,
+                'role' => 'admin',
             ],
             [
                 'name' => 'Siti Nurhaliza',
@@ -52,6 +53,7 @@ class UserSeeder extends Seeder
                 'email' => 'siti.nurhaliza@biofarma.com',
                 'position_id' => $lspPosition->id,
                 'unit_id' => $lspUnit->id,
+                'role' => 'admin',
             ],
         ];
 

@@ -3,18 +3,25 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Traits\ClearsRelatedCache;
 use App\Models\User;
 use App\Models\Position;
 use App\Models\Unit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
+    use ClearsRelatedCache;
     public function index()
     {
-        $users = User::with(['position', 'unit'])->get();
+        // Cache users list for 60 seconds
+        $users = Cache::remember('admin_users_list', 60, function () {
+            return User::with(['position', 'unit'])->get();
+        });
+        
         return view('admin.users.index', compact('users'));
     }
 
@@ -40,6 +47,12 @@ class UserController extends Controller
         $validated['password'] = Hash::make($validated['password']);
         
         User::create($validated);
+        
+        // Clear related caches
+        $this->clearRelatedCaches([
+            'admin_users_list',
+            'admin_dashboard_stats',
+        ]);
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User berhasil ditambahkan.');
@@ -71,6 +84,17 @@ class UserController extends Controller
         }
 
         $user->update($validated);
+        
+        // Clear related caches
+        $this->clearRelatedCaches([
+            'admin_users_list',
+            'admin_dashboard_stats',
+        ]);
+        
+        // Clear user-specific caches if trainee
+        if ($user->role->value === 'trainee') {
+            $this->clearUserCaches($user->id);
+        }
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User berhasil diperbarui.');
@@ -78,7 +102,21 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        $userId = $user->id;
+        $isTrainee = $user->role->value === 'trainee';
+        
         $user->delete();
+        
+        // Clear related caches
+        $this->clearRelatedCaches([
+            'admin_users_list',
+            'admin_dashboard_stats',
+        ]);
+        
+        // Clear user-specific caches if trainee
+        if ($isTrainee) {
+            $this->clearUserCaches($userId);
+        }
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User berhasil dihapus.');

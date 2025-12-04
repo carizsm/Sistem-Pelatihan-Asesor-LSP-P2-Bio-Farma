@@ -2,24 +2,32 @@
 
 namespace App\Http\Controllers;
 
+use App\Traits\ClearsRelatedCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use App\Models\Registration;
 use App\Models\Presence;
 use Carbon\Carbon;
 
 class PresenceController extends Controller
 {
+    use ClearsRelatedCache;
     public function show()
     {
         $user = Auth::user();
+        $userId = $user->id;
         $now = now();
         
-        // Ambil SEMUA registrations milik user tanpa filter waktu
-        $registrations = Registration::where('user_id', $user->id)
-            ->with(['tna', 'presence'])
-            ->get()
-            ->sortByDesc(function ($reg) use ($now) {
+        // Cache presence data for 60 seconds
+        $registrations = Cache::remember("presence_registrations_user_{$userId}", 60, function () use ($userId) {
+            return Registration::where('user_id', $userId)
+                ->with(['tna', 'presence'])
+                ->get();
+        });
+        
+        // Sort by priority
+        $registrations = $registrations->sortByDesc(function ($reg) use ($now) {
                 $start = Carbon::parse($reg->tna->start_date);
                 $end = Carbon::parse($reg->tna->end_date);
                 
@@ -74,18 +82,24 @@ class PresenceController extends Controller
             'clock_in' => $now
         ]);
         
+        // Clear user-specific cache
+        $this->clearUserCaches($registration->user_id);
+        
         return redirect()->back()
             ->with('success', 'Clock-in berhasil!');
     }
 
     public function update(Presence $presence)
     {
+        // Eager-load registration with user and tna to avoid N+1
+        $presence->load('registration.user', 'registration.tna');
+        
         // Authorization: Check ownership via registration
         if (Auth::id() !== $presence->registration->user_id) {
             abort(403, 'Unauthorized action.');
         }
         
-        // Eager-load TNA for time checks
+        // TNA for time checks
         $tna = $presence->registration->tna;
         $now = now();
         
@@ -108,6 +122,9 @@ class PresenceController extends Controller
         $presence->update([
             'clock_out' => $now
         ]);
+        
+        // Clear user-specific cache
+        $this->clearUserCaches($presence->registration->user_id);
         
         return redirect()->back()
             ->with('success', 'Clock-out berhasil!');
