@@ -16,7 +16,8 @@ class EvaluationResultController extends Controller
     public function indexFeedback()
     {
         // Cache feedback results index for 60 seconds
-        $tnas = Cache::remember('admin_feedback_results_index', 60, function () {
+        $page = request()->get('page', 1);
+        $tnas = Cache::remember('admin_feedback_results_index_page_' . $page, 60, function () {
             return Tna::withCount('registrations')->paginate(10);
         });
         
@@ -64,7 +65,8 @@ class EvaluationResultController extends Controller
     public function indexQuiz()
     {
         // Cache quiz results index for 60 seconds
-        $tnas = Cache::remember('admin_quiz_results_index', 60, function () {
+        $page = request()->get('page', 1);
+        $tnas = Cache::remember('admin_quiz_results_index_page_' . $page, 60, function () {
             return Tna::withCount('registrations')
                         ->with(['registrations.quizAttempts'])
                         ->paginate(10);
