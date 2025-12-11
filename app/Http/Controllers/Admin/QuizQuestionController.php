@@ -17,9 +17,9 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 class QuizQuestionController extends Controller
 {
     use ClearsRelatedCache;
+
     public function index()
     {
-        // Cache quiz questions index for 60 seconds
         $page = request()->get('page', 1);
         $tnas = Cache::remember('admin_quiz_questions_index_page_' . $page, 60, function () {
             return Tna::withCount('quizQuestions')->paginate(10);
@@ -32,7 +32,6 @@ class QuizQuestionController extends Controller
     {
         $tnaId = $tna->id;
         
-        // Cache quiz questions for specific TNA for 60 seconds
         $questions = Cache::remember("admin_quiz_questions_tna_{$tnaId}", 60, function () use ($tna) {
             return $tna->quizQuestions()
                 ->with('quizAnswers')
@@ -57,7 +56,7 @@ class QuizQuestionController extends Controller
         $sheet->setCellValue('F1', 'Jawaban 4');
         $sheet->setCellValue('G1', 'Kunci Jawaban (1-4)');
 
-        // Contoh
+        // Contoh Data
         $sheet->setCellValue('A2', '1');
         $sheet->setCellValue('B2', 'Apa ibukota Indonesia?');
         $sheet->setCellValue('C2', 'Jakarta');
@@ -84,9 +83,7 @@ class QuizQuestionController extends Controller
         ]);
 
         try {
-            // Gunakan Transaction untuk integritas data
             DB::transaction(function () use ($request, $tna) {
-                
                 // 1. HAPUS SEMUA SOAL LAMA (Mode Replace)
                 $tna->quizQuestions()->delete();
 
@@ -96,8 +93,7 @@ class QuizQuestionController extends Controller
                 $sheet = $spreadsheet->getActiveSheet();
                 $rows = $sheet->toArray();
 
-                // Skip header row
-                array_shift($rows);
+                array_shift($rows); // Skip header
 
                 foreach ($rows as $row) {
                     if (empty($row[0]) || empty($row[1])) continue;
@@ -108,7 +104,6 @@ class QuizQuestionController extends Controller
                         'question_number' => $row[0],
                     ]);
 
-                    // Jawaban (Kolom C-F / Index 2-5)
                     for ($i = 2; $i <= 5; $i++) {
                         if (!empty($row[$i])) {
                             QuizAnswer::create([
@@ -122,17 +117,8 @@ class QuizQuestionController extends Controller
                 }
             });
             
-            // Clear related caches
-            $this->clearRelatedCaches([
-                'admin_quiz_questions_index',
-                "admin_quiz_questions_tna_{$tna->id}",
-                'admin_quiz_results_index',
-            ]);
-            
-            // Clear participant caches
-            foreach ($tna->registrations as $registration) {
-                $this->clearUserCaches($registration->user_id);
-            }
+            // BERSIH-BERSIH CACHE
+            $this->flushQuizCache($tna);
 
             return redirect()->route('admin.quiz_questions.show', $tna)
                 ->with('success', 'Soal kuis berhasil diproses.');
@@ -142,36 +128,53 @@ class QuizQuestionController extends Controller
         }
     }
 
-    // Method Baru: Hapus Satu Soal
     public function destroy(QuizQuestion $question)
     {
-        $tnaId = $question->tna_id;
+        // Ambil TNA sebelum delete untuk keperluan cache clearing
+        $tna = $question->tna; 
         
         $question->delete();
         
-        // Clear related caches
-        $this->clearRelatedCaches([
-            'admin_quiz_questions_index',
-            "admin_quiz_questions_tna_{$tnaId}",
-        ]);
+        // BERSIH-BERSIH CACHE
+        if ($tna) {
+            $this->flushQuizCache($tna);
+        }
         
         return back()->with('success', 'Soal berhasil dihapus.');
     }
 
-    // Method Baru: Hapus Semua Soal
     public function destroyAll(Tna $tna)
     {
         $tna->quizQuestions()->delete();
         
-        // Clear related caches
-        $this->clearRelatedCaches([
-            'admin_quiz_questions_index',
-            "admin_quiz_questions_tna_{$tna->id}",
-            'admin_quiz_results_index',
-            "admin_quiz_pretest_tna_{$tna->id}",
-            "admin_quiz_posttest_tna_{$tna->id}",
-        ]);
+        // BERSIH-BERSIH CACHE
+        $this->flushQuizCache($tna);
         
         return back()->with('success', 'Semua soal berhasil dihapus.');
+    }
+
+    /**
+     * PRIVATE HELPER: Centralized Quiz Cache Clearing
+     */
+    private function flushQuizCache(Tna $tna)
+    {
+        // 1. Clear Global Admin List
+        $this->clearRelatedCaches([
+            'admin_quiz_questions_index_page_*', // List TNA di menu Bank Soal
+            'admin_quiz_results_index',          // List Hasil Quiz (jaga-jaga)
+        ]);
+
+        // 2. Clear Laporan Spesifik TNA
+        $this->clearRelatedCaches([
+            "admin_quiz_questions_tna_{$tna->id}", // List Soal Detail
+            "admin_quiz_pretest_tna_{$tna->id}",   // Laporan Pretest
+            "admin_quiz_posttest_tna_{$tna->id}",  // Laporan Posttest
+        ]);
+
+        // 3. Clear Cache Peserta
+        // Biar peserta yang lagi buka menu Evaluasi langsung dapat update soal
+        foreach ($tna->registrations as $registration) {
+            $this->clearUserCaches($registration->user_id, $tna->id);
+        }
     }
 }

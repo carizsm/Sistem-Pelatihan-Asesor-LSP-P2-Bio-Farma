@@ -6,16 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\Tna;
 use App\Models\FeedbackResult;
 use App\Models\QuizAttempt;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class EvaluationResultController extends Controller
 {
-    // ========== LAPORAN EVALUASI 1 (FEEDBACK) ==========
+    // ==========================================
+    // LAPORAN EVALUASI 1 (FEEDBACK)
+    // ==========================================
     
     public function indexFeedback()
     {
-        // Cache feedback results index for 60 seconds
+        // Cache feedback results index with pagination
+        // KEY: admin_feedback_results_index_page_{page} (Match with ClearsRelatedCache)
         $page = request()->get('page', 1);
         $tnas = Cache::remember('admin_feedback_results_index_page_' . $page, 60, function () {
             return Tna::withCount('registrations')->paginate(10);
@@ -28,7 +30,8 @@ class EvaluationResultController extends Controller
     {
         $tnaId = $tna->id;
         
-        // Cache feedback report for 60 seconds
+        // Cache feedback report details
+        // KEY: admin_feedback_report_tna_{id} (Match with ClearsRelatedCache)
         $feedbacks = Cache::remember("admin_feedback_report_tna_{$tnaId}", 60, function () use ($tna) {
             return FeedbackResult::whereHas('registration', function($query) use ($tna) {
                     $query->where('tna_id', $tna->id);
@@ -37,6 +40,8 @@ class EvaluationResultController extends Controller
                 ->get();
         });
 
+        // --- BISNIS LOGIC (Asli Tanpa Perubahan) ---
+        
         // Calculate averages for all 15 scores
         $averages = [];
         for ($i = 1; $i <= 15; $i++) {
@@ -47,7 +52,7 @@ class EvaluationResultController extends Controller
         // Calculate overall average
         $averages['overall'] = collect($averages)->avg();
 
-        // Group scores by category (example: 1-5 Pengajar, 6-10 Materi, 11-15 Fasilitas)
+        // Group scores by category
         $categoryAverages = [
             'tujuan' => collect(range(1, 2))->map(fn($i) => $averages[sprintf('score_%02d', $i)])->avg(),
             'materi' => collect(range(3, 5))->map(fn($i) => $averages[sprintf('score_%02d', $i)])->avg(),
@@ -60,11 +65,14 @@ class EvaluationResultController extends Controller
         return view('admin.feedback_results.show', compact('tna', 'feedbacks', 'averages', 'categoryAverages'));
     }
 
-    // ========== LAPORAN EVALUASI 2 (KUIS) ==========
+    // ==========================================
+    // LAPORAN EVALUASI 2 (KUIS)
+    // ==========================================
 
     public function indexQuiz()
     {
-        // Cache quiz results index for 60 seconds
+        // Cache quiz results index with pagination
+        // KEY: admin_quiz_results_index_page_{page} (Match with ClearsRelatedCache)
         $page = request()->get('page', 1);
         $tnas = Cache::remember('admin_quiz_results_index_page_' . $page, 60, function () {
             return Tna::withCount('registrations')
@@ -72,7 +80,9 @@ class EvaluationResultController extends Controller
                         ->paginate(10);
         });
 
-        // REVISI: Hitung statistik untuk setiap TNA
+        // --- BISNIS LOGIC (Asli Tanpa Perubahan) ---
+
+        // Hitung statistik untuk setiap TNA
         $tnas->each(function ($tna) {
             // Ambil semua quiz attempts dari semua peserta TNA ini
             $allAttempts = $tna->registrations->flatMap(function ($registration) {
@@ -96,7 +106,8 @@ class EvaluationResultController extends Controller
     {
         $tnaId = $tna->id;
         
-        // Cache pre-test attempts for 60 seconds
+        // Cache pre-test attempts
+        // KEY: admin_quiz_pretest_tna_{id} (Match with ClearsRelatedCache)
         $preTestAttempts = Cache::remember("admin_quiz_pretest_tna_{$tnaId}", 60, function () use ($tna) {
             return QuizAttempt::whereHas('registration', function($query) use ($tna) {
                     $query->where('tna_id', $tna->id);
@@ -106,7 +117,8 @@ class EvaluationResultController extends Controller
                 ->get();
         });
 
-        // Cache post-test attempts for 60 seconds
+        // Cache post-test attempts
+        // KEY: admin_quiz_posttest_tna_{id} (Match with ClearsRelatedCache)
         $postTestAttempts = Cache::remember("admin_quiz_posttest_tna_{$tnaId}", 60, function () use ($tna) {
             return QuizAttempt::whereHas('registration', function($query) use ($tna) {
                     $query->where('tna_id', $tna->id);
@@ -115,6 +127,8 @@ class EvaluationResultController extends Controller
                 ->with('registration.user')
                 ->get();
         });
+
+        // --- BISNIS LOGIC (Asli Tanpa Perubahan) ---
 
         $passingScore = $tna->passing_score ?? 70;
 

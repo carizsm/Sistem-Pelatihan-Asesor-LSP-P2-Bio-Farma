@@ -2,24 +2,32 @@
 
 namespace App\Enums;
 
-/**
- * Mendefinisikan status realisasi TNA yang disimpan di database.
- * Status ini menunjukkan apakah pelatihan benar-benar dilaksanakan atau tidak.
- */
 enum RealizationStatus: string
 {
-    /**
-     * Status default saat TNA dibuat dan belum dimulai.
-     */
-    case BELUM_TEREALISASI = 'belum terealisasi';
+    // Database value
+    case OPEN = 'open';
+    case RUNNING = 'running';
+    case COMPLETED = 'completed';
+    case CANCELED = 'canceled';
 
-    /**
-     * Status ketika TNA sudah dilaksanakan/diimplementasikan.
-     */
-    case TEREALISASI = 'terealisasi';
-
-    /**
-     * Status jika TNA dibatalkan secara manual oleh Admin.
-     */
-    case TIDAK_TEREALISASI = 'tidak terealisasi';
+    public function label(): string
+    {
+        return match($this) {
+            self::OPEN => 'Belum Terealisasi',
+            self::RUNNING => 'Sedang Berjalan', 
+            self::COMPLETED => 'Terealisasi',
+            self::CANCELED => 'Tidak Terealisasi',
+        };
+    }
+    
+    // Color helper in TNA index page
+    public function color(): string
+    {
+        return match($this) {
+            self::OPEN => 'primary',
+            self::RUNNING => 'warning',
+            self::COMPLETED => 'success',
+            self::CANCELED => 'danger',
+        };
+    }
 }

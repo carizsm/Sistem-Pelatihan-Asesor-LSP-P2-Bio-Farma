@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Enums\RealizationStatus;
 use Illuminate\Validation\Rule;
 
 class UpdateTnaRequest extends FormRequest
@@ -34,7 +35,10 @@ class UpdateTnaRequest extends FormRequest
             'goal' => 'required|string|max:500',
             'before_status' => 'required|string|max:500',
             'after_status' => 'required|string|max:500',
-            'realization_status' => 'required|in:belum terealisasi,terealisasi,tidak terealisasi',
+            'realization_status' => [
+                'required', 
+                Rule::enum(RealizationStatus::class)
+            ],
         ];
     }
 }

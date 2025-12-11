@@ -152,15 +152,32 @@
                     <textarea id="after_status" name="after_status" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" required>{{ old('after_status', $tna->after_status ?? '') }}</textarea>
                 </div>
             </div>
-            <div>
+            <div class="form-group">
                 <label for="realization_status" class="block text-sm font-medium text-gray-700 mb-1">Status Realisasi</label>
                 <select id="realization_status" name="realization_status" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500 appearance-none" required>
+                    @php
+                        $currentValue = old('realization_status', $tna->realization_status ?? RealizationStatus::OPEN);
+                        // Kalau dia Objek Enum, ambil ->value. Kalau string, biarkan.
+                        if ($currentValue instanceof RealizationStatus) {
+                            $currentValue = $currentValue->value;
+                        }
+                    @endphp
                     @foreach(RealizationStatus::cases() as $status)
-                        <option value="{{ $status->value }}" {{ old('realization_status', $tna->realization_status ?? RealizationStatus::BELUM_TEREALISASI)->value == $status->value ? 'selected' : '' }}>
-                            {{ ucwords(str_replace('_', ' ', $status->name)) }}
+                        <option value="{{ $status->value }}" 
+                            {{ $currentValue == $status->value ? 'selected' : '' }}>
+                            {{ $status->label() }}
                         </option>
                     @endforeach
-                </select>
+                </select>   
+            </div>
+                {{-- <select id="realization_status" name="realization_status" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500 appearance-none" required>
+                    @foreach(RealizationStatus::cases() as $status)
+                        <option value="{{ $status->value }}" 
+                            {{ (old('realization_status', $tna->realization_status) == $status->value) ? 'selected' : '' }}>
+                            {{ $status->label() }}
+                        </option>
+                    @endforeach
+                </select> --}}
             </div>
         </div>
 

@@ -36,34 +36,35 @@
                 </p>
             </div>
 
-            @if (Route::has('login'))
-                <!-- Tombol Login & Sign Up -->
-                <div class="flex gap-4 justify-center items-center">
-                    @auth
-                        <a
-                            href="{{ url('/dashboard') }}"
-                            class="inline-block px-8 py-3 bg-[#1b1b18] dark:bg-[#eeeeec] dark:text-[#1C1C1A] text-white rounded-lg text-base font-medium hover:bg-black dark:hover:bg-white transition-all"
-                        >
-                            Dashboard
-                        </a>
-                    @else
-                        <a
-                            href="{{ route('login') }}"
-                            class="inline-block px-8 py-3 border-2 border-[#1b1b18] dark:border-[#eeeeec] text-[#1b1b18] dark:text-[#EDEDEC] rounded-lg text-base font-medium hover:bg-[#1b1b18] hover:text-white dark:hover:bg-[#eeeeec] dark:hover:text-[#1C1C1A] transition-all"
-                        >
-                            Login
-                        </a>
-
-                        @if (Route::has('register'))
+            <div class="text-center mb-10">    
+                @if (Route::has('login'))
+                    <div class="flex gap-4 justify-center items-center">
+                        @auth
                             <a
-                                href="{{ route('register') }}"
-                                class="inline-block px-8 py-3 bg-[#F26E22] text-white rounded-lg text-base font-medium hover:bg-[#d95e1a] transition-all">
-                                Sign Up
+                                href="{{ Auth::user()->role->value === 'admin' ? route('admin.users.index') : route('dashboard') }}"
+                                class="inline-block px-8 py-3 bg-[#1b1b18] dark:bg-[#eeeeec] dark:text-[#1C1C1A] text-white rounded-lg text-base font-medium hover:bg-black dark:hover:bg-white transition-all"
+                            >
+                                Dashboard
                             </a>
-                        @endif
-                    @endauth
-                </div>
-            @endif
+                        @else
+                            <a
+                                href="{{ route('login') }}"
+                                class="inline-block px-8 py-3 border-2 border-[#1b1b18] dark:border-[#eeeeec] text-[#1b1b18] dark:text-[#EDEDEC] rounded-lg text-base font-medium hover:bg-[#1b1b18] hover:text-white dark:hover:bg-[#eeeeec] dark:hover:text-[#1C1C1A] transition-all"
+                            >
+                                Login
+                            </a>
+
+                            @if (Route::has('register'))
+                                <a
+                                    href="{{ route('register') }}"
+                                    class="inline-block px-8 py-3 bg-[#F26E22] text-white rounded-lg text-base font-medium hover:bg-[#d95e1a] transition-all">
+                                    Sign Up
+                                </a>
+                            @endif
+                        @endauth
+                    </div>
+                @endif
+            </div>
         </div>
     </body>
 </html>

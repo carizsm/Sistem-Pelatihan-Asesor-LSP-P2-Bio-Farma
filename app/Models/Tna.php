@@ -39,7 +39,8 @@ class Tna extends Model
         'reason',
         'goal',
         'before_status',
-        'after_status'
+        'after_status',
+        'user_id',
     ];
 
     public function user(): BelongsTo
@@ -66,7 +67,7 @@ class Tna extends Model
     {
         return Attribute::make(
             get: function () {
-                if ($this->realization_status === RealizationStatus::TIDAK_TEREALISASI) {
+                if ($this->realization_status === RealizationStatus::CANCELED) {
                     return 'Dibatalkan';
                 }
 

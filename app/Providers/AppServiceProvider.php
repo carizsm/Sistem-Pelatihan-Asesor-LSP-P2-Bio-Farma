@@ -4,7 +4,9 @@ namespace App\Providers;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
+use App\Extensions\CachedEloquentUserProvider;
 
 class AppServiceProvider extends ServiceProvider
 {

@@ -48,26 +48,47 @@
                     @forelse ($tnas as $tna)
                     <tr class="hover:bg-gray-50">
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
-                            {{-- REVISI: Menggunakan $tna->tna_code --}}
                             <a href="{{ route('admin.tnas.show', $tna->id) }}" class="text-blue-600 hover:underline font-semibold">
                                 {{ $tna->tna_code }}
                             </a>
                         </td>
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
-                            {{-- REVISI: Menggunakan $tna->name --}}
                             {{ $tna->name }}
                         </td>
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
                             {{ $tna->user->name ?? 'N/A' }}
                         </td>
-                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
-                            <span class="px-3 py-1 rounded-full text-xs font-semibold 
-                                {{ $tna->realization_status == 'Terealisasi' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
-                                {{ $tna->realization_status }}
-                            </span>
+                        <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
+                            @php
+                                // Kita ambil value-nya saja (aman buat String maupun Enum Object)
+                                $statusValue = $tna->realization_status instanceof \App\Enums\RealizationStatus 
+                                    ? $tna->realization_status->value 
+                                    : $tna->realization_status;
+                                $baseClasses = "inline-block w-36 py-1 rounded-full text-xs font-semibold text-center";
+                            @endphp
+                            @switch($statusValue)
+                                @case('running')
+                                    <span class="{{ $baseClasses }} bg-yellow-100 text-yellow-800">
+                                        Sedang Berjalan
+                                    </span>
+                                    @break
+                                @case('completed')
+                                    <span class="{{ $baseClasses }} bg-green-100 text-green-800">
+                                        Terealisasi
+                                    </span>
+                                    @break
+                                @case('canceled')
+                                    <span class="{{ $baseClasses }} bg-red-100 text-red-800">
+                                        Tidak Terealisasi
+                                    </span>
+                                    @break
+                                @default
+                                    <span class="{{ $baseClasses }} bg-blue-100 text-blue-800">
+                                        Belum Terealisasi
+                                    </span>
+                            @endswitch
                         </td>
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-center">
-                            
                             <a href="{{ route('admin.tnas.edit', $tna->id) }}" class="text-orange-500 hover:text-orange-700 mx-1">
                                 <img src="{{ asset('icons/Button Edit.svg') }}" class="w-8 h-8 inline" alt="Edit">
                             </a>

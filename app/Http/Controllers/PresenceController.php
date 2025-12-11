@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Cache;
 use App\Models\Registration;
 use App\Models\Presence;
 use Carbon\Carbon;
+use App\Enums\RealizationStatus;
 
 class PresenceController extends Controller
 {
@@ -65,10 +66,14 @@ class PresenceController extends Controller
         // Time Check: Must be within 30 minutes before start_date and before end_date
         $allowedClockInTime = Carbon::parse($tna->start_date)->subMinutes(30);
         $now = now();
+
+        if ($tna->realization_status !== RealizationStatus::RUNNING) {
+            return back()->with('error', 'Absensi belum dibuka oleh Admin.');
+        }
         
-        if ($now->lt($allowedClockInTime) || $now->gt($tna->end_date)) {
+        if ($now->lt($allowedClockInTime)) {
             return redirect()->back()
-                ->with('error', 'Clock-in hanya dapat dilakukan 30 menit sebelum pelatihan dimulai hingga sebelum pelatihan berakhir.');
+                ->with('error', 'Clock-in baru dibuka 30 menit sebelum pelatihan dimulai.');
         }
         
         // Status Check: Already clocked in?
@@ -83,7 +88,7 @@ class PresenceController extends Controller
         ]);
         
         // Clear user-specific cache
-        $this->clearUserCaches($registration->user_id);
+        $this->clearUserCaches($registration->user_id, $tna->id);
         
         return redirect()->back()
             ->with('success', 'Clock-in berhasil!');
@@ -102,14 +107,17 @@ class PresenceController extends Controller
         // TNA for time checks
         $tna = $presence->registration->tna;
         $now = now();
+
+        if (!in_array($tna->realization_status, [RealizationStatus::RUNNING, RealizationStatus::COMPLETED])) {
+             return back()->with('error', 'Sesi absensi sudah ditutup atau dibatalkan.');
+        }
         
         // Declare clock-out allowed range
         $validClockOutStart = Carbon::parse($tna->start_date);
-        $validClockOutEnd = Carbon::parse($tna->end_date)->addMinutes(30);
 
-        if ($now->isBefore($validClockOutStart) || $now->isAfter($validClockOutEnd)) {
+        if ($now->isBefore($validClockOutStart)) {
             return redirect()->back()
-                ->with('error', 'Clock-out hanya dapat dilakukan sejak pelatihan dimulai hingga 30 menit setelah pelatihan berakhir.');
+                ->with('error', 'Clock-out hanya dapat dilakukan setelah pelatihan dimulai.');
         }
         
         // Status Check: Already clocked out?
@@ -124,7 +132,7 @@ class PresenceController extends Controller
         ]);
         
         // Clear user-specific cache
-        $this->clearUserCaches($presence->registration->user_id);
+        $this->clearUserCaches($presence->registration->user_id, $tna->id);
         
         return redirect()->back()
             ->with('success', 'Clock-out berhasil!');

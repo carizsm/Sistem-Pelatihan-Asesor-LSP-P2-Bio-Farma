@@ -15,12 +15,26 @@ use Illuminate\Validation\Rule;
 class UserController extends Controller
 {
     use ClearsRelatedCache;
+
     public function index()
     {
-        // Cache users list for 60 seconds
+        // OPTIMIZED: Cache users list with selective column fetching
         $page = request()->get('page', 1);
+        
         $users = Cache::remember('admin_users_list_page_' . $page, 60, function () {
-            return User::with(['position', 'unit'])->paginate(10);
+            return User::select(
+                    'id',           // Required for route binding (edit/delete)
+                    'nik',          // Displayed in table
+                    'name',         // Displayed in table
+                    'position_id',  // Foreign key for position relationship
+                    'unit_id',      // Foreign key for unit relationship
+                    'role'          // Required for Role badge logic if needed
+                )
+                ->with([
+                    'position:id,position_name',  // Only fetch id and position_name
+                    'unit:id,unit_name'           // Only fetch id and unit_name
+                ])
+                ->paginate(10);
         });
         
         return view('admin.users.index', compact('users'));
@@ -47,13 +61,11 @@ class UserController extends Controller
 
         $validated['password'] = Hash::make($validated['password']);
         
-        User::create($validated);
+        // Simpan user ke variabel agar bisa dipassing ke helper cache
+        $user = User::create($validated);
         
-        // Clear related caches
-        $this->clearRelatedCaches([
-            'admin_users_list',
-            'admin_dashboard_stats',
-        ]);
+        // Bersih-bersih Cache
+        $this->flushUserCache($user);
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User berhasil ditambahkan.');
@@ -86,16 +98,8 @@ class UserController extends Controller
 
         $user->update($validated);
         
-        // Clear related caches
-        $this->clearRelatedCaches([
-            'admin_users_list',
-            'admin_dashboard_stats',
-        ]);
-        
-        // Clear user-specific caches if trainee
-        if ($user->role->value === 'trainee') {
-            $this->clearUserCaches($user->id);
-        }
+        // Bersih-bersih Cache
+        $this->flushUserCache($user);
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User berhasil diperbarui.');
@@ -103,23 +107,31 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        $userId = $user->id;
-        $isTrainee = $user->role->value === 'trainee';
-        
         $user->delete();
         
-        // Clear related caches
-        $this->clearRelatedCaches([
-            'admin_users_list',
-            'admin_dashboard_stats',
-        ]);
-        
-        // Clear user-specific caches if trainee
-        if ($isTrainee) {
-            $this->clearUserCaches($userId);
-        }
+        // Bersih-bersih Cache (Objek $user masih menyimpan data ID dan Role di memori meski sudah delete DB)
+        $this->flushUserCache($user);
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User berhasil dihapus.');
+    }
+
+    /**
+     * PRIVATE HELPER: Centralized User Cache Clearing
+     * Menghapus cache global dan cache spesifik user jika dia trainee
+     */
+    private function flushUserCache(User $user)
+    {
+        // 1. Clear Global Cache (List User & Dashboard Stats)
+        $this->clearRelatedCaches([
+            'admin_users_list_page_*',
+            'admin_dashboard_stats',
+        ]);
+
+        // 2. Clear User Specific Cache (Hanya jika role trainee)
+        // Menggunakan logic pengecekan role yang sama dengan kode asli
+        if ($user->role->value === 'trainee') {
+            $this->clearUserCaches($user->id);
+        }
     }
 }

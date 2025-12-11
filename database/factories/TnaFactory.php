@@ -40,7 +40,7 @@ class TnaFactory extends Factory
             'end_date' => $endDate,
             'speaker' => $this->faker->name(),
             'spt_file_path' => null,
-            'realization_status' => RealizationStatus::BELUM_TEREALISASI,
+            'realization_status' => RealizationStatus::OPEN,
             
             // New required fields
             'reason' => 'Meningkatkan kompetensi karyawan dalam ' . $this->faker->words(3, true),
@@ -58,7 +58,7 @@ class TnaFactory extends Factory
     public function cancelled(): static
     {
         return $this->state(fn (array $attributes) => [
-            'realization_status' => RealizationStatus::TIDAK_TEREALISASI,
+            'realization_status' => RealizationStatus::CANCELED,
         ]);
     }
 }

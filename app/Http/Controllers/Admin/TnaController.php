@@ -23,10 +23,9 @@ class TnaController extends Controller
 
     public function index()
     {
-        // Cache TNAs list with pagination key
         $page = request()->get('page', 1);
         $tnas = Cache::remember("admin_tnas_list_page_{$page}", 60, function () {
-                return Tna::with('user')
+            return Tna::with('user')
                 ->latest()
                 ->paginate(10);
         });
@@ -38,36 +37,28 @@ class TnaController extends Controller
     {
         return view('admin.tnas.form');
     }
+
     public function store(StoreTnaRequest $request)
     {
-        $validated = $request->validated();
+        $data = $request->validated();
 
-        // Calculate batch number for the same training name (across all years)
-        $batchCount = Tna::where('name', $validated['name'])->count();
-        $validated['batch'] = $batchCount + 1;
+        // Auto-generate Batch & Code
+        $batchCount = Tna::where('name', $data['name'])->count();
+        $data['batch'] = $batchCount + 1;
         
-        // Calculate year sequence for tna_code (count of TNAs in this year)
-        $yearSequence = Tna::where('period', $validated['period'])->count() + 1;
+        $yearSequence = Tna::where('period', $data['period'])->count() + 1;
+        $data['tna_code'] = 'TNA.' . $data['period'] . '.' . $yearSequence;
         
-        // Generate unique tna_code: TNA.{year}.{year_sequence}
-        $validated['tna_code'] = 'TNA.' . $validated['period'] . '.' . $yearSequence;
-        $validated['user_id'] = Auth::id();
+        $data['user_id'] = Auth::id();
         
-        // Handle file upload for spt_file_path
         if ($request->hasFile('spt_file_path')) {
-            $validated['spt_file_path'] = $request->file('spt_file_path')->store('spt_files', 'public');
+            $data['spt_file_path'] = $request->file('spt_file_path')->store('spt_files', 'public');
         }
         
-        Tna::create($validated);
+        $tna = Tna::create($data);
         
-        // Clear related caches
-        $this->clearRelatedCaches([
-            'admin_tnas_list_page_*',
-            'admin_dashboard_stats',
-            'admin_feedback_results_index',
-            'admin_quiz_results_index',
-            'admin_quiz_questions_index',
-        ]);
+        // Bersih-bersih (Hanya level global karena TNA baru belum punya peserta)
+        $this->flushTnaCache($tna);
         
         return redirect()->route('admin.tnas.index')
             ->with('success', 'Data TNA berhasil ditambahkan.');
@@ -87,10 +78,8 @@ class TnaController extends Controller
     {
         $tna->load('registrations.user.unit', 'registrations.user.position');
         
-        // Get registered user IDs
         $registeredUserIds = $tna->registrations->pluck('user_id')->toArray();
         
-        // Get trainee users not yet registered
         $availableUsers = User::where('role', 'trainee')
             ->whereNotIn('id', $registeredUserIds)
             ->orderBy('name')
@@ -105,9 +94,7 @@ class TnaController extends Controller
         
         $validated = $request->validated();
         
-        // Handle file upload for spt_file_path
         if ($request->hasFile('spt_file_path')) {
-            // Delete old file if exists
             if ($tna->spt_file_path && Storage::disk('public')->exists($tna->spt_file_path)) {
                 Storage::disk('public')->delete($tna->spt_file_path);
             }
@@ -116,23 +103,10 @@ class TnaController extends Controller
         
         $tna->update($validated);
         
-        // Clear related caches
-        $this->clearRelatedCaches([
-            'admin_tnas_list_page_*',
-            'admin_dashboard_stats',
-            'admin_feedback_results_index',
-            'admin_quiz_results_index',
-            'admin_quiz_questions_index',
-            "admin_feedback_report_tna_{$tna->id}",
-            "admin_quiz_pretest_tna_{$tna->id}",
-            "admin_quiz_posttest_tna_{$tna->id}",
-            "admin_quiz_questions_tna_{$tna->id}",
-        ]);
-        
-        // Clear participant caches
-        foreach ($tna->registrations as $registration) {
-            $this->clearUserCaches($registration->user_id);
-        }
+        // Bersih-bersih: Global + Laporan TNA + SEMUA Peserta yg terdaftar
+        // Kita ambil ID peserta untuk membersihkan cache dashboard mereka
+        $participantIds = $tna->registrations->pluck('user_id')->toArray();
+        $this->flushTnaCache($tna, $participantIds);
         
         return redirect()->route('admin.tnas.index')
             ->with('success', 'Data TNA berhasil diperbarui.');
@@ -142,28 +116,13 @@ class TnaController extends Controller
     {
         $this->authorize('delete', $tna);
         
-        $tnaId = $tna->id;
+        // Simpan ID peserta dulu sebelum dihapus datanya
         $participantIds = $tna->registrations->pluck('user_id')->toArray();
         
         $tna->delete();
         
-        // Clear related caches
-        $this->clearRelatedCaches([
-            'admin_tnas_list_page_*',
-            'admin_dashboard_stats',
-            'admin_feedback_results_index',
-            'admin_quiz_results_index',
-            'admin_quiz_questions_index',
-            "admin_feedback_report_tna_{$tnaId}",
-            "admin_quiz_pretest_tna_{$tnaId}",
-            "admin_quiz_posttest_tna_{$tnaId}",
-            "admin_quiz_questions_tna_{$tnaId}",
-        ]);
-        
-        // Clear participant caches
-        foreach ($participantIds as $userId) {
-            $this->clearUserCaches($userId);
-        }
+        // Bersih-bersih (Pass object TNA meski sudah didelete, ID-nya masih ada di memory)
+        $this->flushTnaCache($tna, $participantIds);
         
         return redirect()->route('admin.tnas.index')
             ->with('success', 'Data TNA berhasil dihapus.');
@@ -174,18 +133,19 @@ class TnaController extends Controller
         $this->authorize('update', $tna);
         
         $tna->update([
-            'realization_status' => RealizationStatus::TIDAK_TEREALISASI
+            'realization_status' => RealizationStatus::CANCELED
         ]);
         
-        // Clear related caches
-        $this->clearRelatedCaches([
-            'admin_tnas_list_page_*',
-            'admin_dashboard_stats',
-        ]);
+        // Bersih-bersih standar
+        $this->flushTnaCache($tna);
         
         return redirect()->route('admin.tnas.show', $tna)
             ->with('success', 'TNA berhasil dibatalkan.');
     }
+
+    // ==========================================
+    // LOGIC REGISTRATION (Merged here)
+    // ==========================================
 
     public function storeRegistration(Request $request, Tna $tna)
     {
@@ -206,14 +166,8 @@ class TnaController extends Controller
         
         $tna->registrations()->create($validated);
         
-        // Clear related caches
-        $this->clearRelatedCaches([
-            'admin_dashboard_stats',
-            "admin_feedback_report_tna_{$tna->id}",
-            'admin_quiz_results_index',
-        ]);
-        
-        $this->clearUserCaches($validated['user_id']);
+        // Bersih-bersih: Global + TNA + User Spesifik yg baru masuk
+        $this->flushTnaCache($tna, $validated['user_id']);
         
         return redirect()->route('admin.tnas.edit', $tna)
             ->with('success', 'Peserta berhasil ditambahkan.');
@@ -228,18 +182,50 @@ class TnaController extends Controller
         
         $registration->delete();
         
-        // Clear related caches
-        $this->clearRelatedCaches([
-            'admin_dashboard_stats',
-            "admin_feedback_report_tna_{$tna->id}",
-            "admin_quiz_pretest_tna_{$tna->id}",
-            "admin_quiz_posttest_tna_{$tna->id}",
-            'admin_quiz_results_index',
-        ]);
-        
-        $this->clearUserCaches($userId);
+        // Bersih-bersih: Global + TNA + User Spesifik yg dihapus
+        $this->flushTnaCache($tna, $userId);
         
         return redirect()->route('admin.tnas.edit', $tna)
             ->with('success', 'Peserta berhasil dihapus.');
+    }
+
+    /**
+     * PRIVATE HELPER: Centralized Cache Clearing Logic
+     * Satu pintu untuk membersihkan segala kekacauan cache.
+     * * @param Tna $tna Object TNA yang sedang diproses
+     * @param mixed $userIds Array ID user atau Single ID user (optional)
+     */
+    private function flushTnaCache(Tna $tna, $userIds = [])
+    {
+        // 1. Bersihkan Cache Global Admin (Index & Dashboard)
+        $this->clearRelatedCaches([
+            'admin_tnas_list_page_*',
+            'admin_dashboard_stats',
+            'admin_feedback_results_index',
+            'admin_quiz_results_index',
+            'admin_quiz_questions_index',
+        ]);
+
+        // 2. Bersihkan Cache Laporan Spesifik TNA
+        // Ini memastikan Admin tidak melihat laporan 'hantu'
+        $this->clearRelatedCaches([
+            "admin_feedback_report_tna_{$tna->id}",
+            "admin_quiz_pretest_tna_{$tna->id}",
+            "admin_quiz_posttest_tna_{$tna->id}",
+            "admin_quiz_questions_tna_{$tna->id}",
+            "admin_participants_tna_{$tna->id}",
+        ]);
+
+        // 3. Bersihkan Cache User/Peserta
+        // Supaya dashboard mereka update (muncul/hilang jadwal)
+        if (!is_array($userIds)) {
+            $userIds = [$userIds]; // Convert single ID to array
+        }
+
+        foreach ($userIds as $id) {
+            // Panggil method dari Trait untuk hapus cache peserta
+            // Kita pass $tna->id juga biar method trait bisa handle logic lanjutan
+            $this->clearUserCaches($id, $tna->id);
+        }
     }
 }
