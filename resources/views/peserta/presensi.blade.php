@@ -151,25 +151,44 @@
                             $now = \Carbon\Carbon::now();
                             $startDate = \Carbon\Carbon::parse($tna->start_date);
                             $endDate = \Carbon\Carbon::parse($tna->end_date);
+                            
+                            // Window waktu toleransi
                             $clockInStart = $startDate->copy()->subMinutes(30);
                             $clockOutEnd = $endDate->copy()->addMinutes(30);
                             $presence = $registration->presence;
                             
-                            // Logic untuk Clock-In
-                            $canClockIn = !$presence && $now->between($clockInStart, $endDate);
+                            // --- SECURITY STATUS CHECK (LOGIC BARU) ---
+                            // Import Enum atau pakai Full Namespace
+                            $status = $tna->realization_status;
+                            $isRunning = $status === \App\Enums\RealizationStatus::RUNNING;
+                            $isCompleted = $status === \App\Enums\RealizationStatus::COMPLETED;
+                            // ------------------------------------------
+
+                            // LOGIC CLOCK-IN:
+                            // 1. Belum absen
+                            // 2. Waktu masuk akal (H-30 s/d Selesai)
+                            // 3. WAJIB RUNNING (Admin sudah klik Start)
+                            $canClockIn = !$presence && 
+                                          $now->between($clockInStart, $endDate) && 
+                                          $isRunning;
                             
-                            // Cek apakah terlambat clock-in (melewati end_date tanpa clock-in)
-                            $isTooLateForClockIn = !$presence && $now->gt($endDate);
+                            // Cek terlambat Clock-In
+                            // Terlambat jika: Waktu habis ATAU (Status sudah selesai TAPI belum absen)
+                            $isTooLateForClockIn = !$presence && ($now->gt($endDate) || $isCompleted);
                             
-                            // Logic untuk Clock-Out (dalam window 30 menit)
+                            // LOGIC CLOCK-OUT:
+                            // 1. Sudah Clock-In
+                            // 2. Belum Clock-Out
+                            // 3. Masih dalam range waktu pulang
+                            // 4. Status boleh RUNNING atau COMPLETED (Jaga-jaga admin close duluan sebelum peserta pulang)
                             $canClockOut = $presence && $presence->clock_in && !$presence->clock_out &&
-                                           $now->between($startDate, $clockOutEnd);
+                                           $now->between($startDate, $clockOutEnd) &&
+                                           ($isRunning || $isCompleted);
                             
-                            // Cek apakah sudah terlambat clock-out (lewat dari end_date + 30 menit)
+                            // Cek terlambat Clock-Out
                             $isTooLateForClockOut = $presence && $presence->clock_in && !$presence->clock_out &&
                                                      $now->gt($clockOutEnd);
                         @endphp
-
                         <tr class="border-b {{ $now->between($startDate, $endDate) ? 'bg-yellow-50' : '' }}">
                             <td class="py-3 px-4">
                                 <div class="flex flex-col">

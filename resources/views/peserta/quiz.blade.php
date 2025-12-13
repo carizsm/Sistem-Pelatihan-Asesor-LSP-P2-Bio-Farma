@@ -166,7 +166,7 @@
                     <form id="quiz-form" method="POST" action="{{ route('evaluasi2.quiz.store', [$registration, $type]) }}" class="flex-1 flex flex-col min-h-0">
                         @csrf
                         
-                        @if($questions->isEmpty())
+                        @if(empty($questions))
                             <div class="bg-white rounded-xl shadow-sm p-12 text-center flex-1 flex items-center justify-center">
                                 <p class="text-gray-500 text-lg">Belum ada soal yang tersedia untuk {{ $type }} ini.</p>
                             </div>
@@ -186,7 +186,7 @@
                                                 <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#F26E22] text-white font-bold">
                                                     {{ $question->question_number }}
                                                 </span>
-                                                <span class="text-sm text-gray-500">Pertanyaan {{ $question->question_number }} dari {{ $questions->count() }}</span>
+                                                <span class="text-sm text-gray-500">Pertanyaan {{ $question->question_number }} dari {{ count($questions) }}</span>
                                             </div>
                                             <h3 class="text-lg font-semibold text-gray-900 leading-relaxed">
                                                 {{ $question->question }}
@@ -195,7 +195,7 @@
 
                                         {{-- Answers --}}
                                         <div class="space-y-3">
-                                            @if($question->quizAnswers->isEmpty())
+                                            @if(empty($question->quizAnswers) || $question->quizAnswers->isEmpty())
                                                 <p class="text-sm text-red-500">Tidak ada opsi jawaban untuk soal ini.</p>
                                             @else
                                                 @foreach($question->quizAnswers->sortBy('answer_order') as $answer)
@@ -481,7 +481,7 @@
         function quizNavigation() {
             return {
                 currentPage: 0,
-                totalPages: {{ isset($attempt) ? $attempt->traineeAnswers->count() : $questions->count() }},
+                totalPages: {{ isset($attempt) ? $attempt->traineeAnswers->count() : count($questions) }},
                 answers: {},
                 answeredCount: 0,
                 isSaving: false,

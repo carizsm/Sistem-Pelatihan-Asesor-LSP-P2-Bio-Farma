@@ -117,14 +117,25 @@
                 @forelse($registrations as $registration)
                     @php
                         $tna = $registration->tna;
-                        $hasPreTest = $registration->quizAttempts->where('type', 'pre-test')->isNotEmpty();
-                        $hasPostTest = $registration->quizAttempts->where('type', 'post-test')->isNotEmpty();
+                        
+                        // Cek Attempt (Sudah pernah kerjakan?)
                         $preTestAttempt = $registration->quizAttempts->where('type', 'pre-test')->first();
                         $postTestAttempt = $registration->quizAttempts->where('type', 'post-test')->first();
-                        $now = now();
-                        $startDate = \Carbon\Carbon::parse($tna->start_date);
-                        $endDate = \Carbon\Carbon::parse($tna->end_date);
-                        $postTestEnd = $endDate->copy()->addMinutes(30);
+                        
+                        // --- SECURITY STATUS CHECK (LOGIC BARU) ---
+                        // Import Enum kalau belum di-import di atas, atau pakai Full Namespace
+                        $status = $tna->realization_status;
+                        
+                        // PRE-TEST: Buka saat Persiapan (OPEN) atau Sedang Jalan (RUNNING)
+                        // Tutup kalau sudah Selesai (COMPLETED) atau Batal (CANCELED)
+                        $isPreTestOpen = in_array($status, [
+                            \App\Enums\RealizationStatus::OPEN, 
+                            \App\Enums\RealizationStatus::RUNNING
+                        ]);
+                        
+                        // POST-TEST: Buka HANYA saat Selesai (COMPLETED)
+                        $isPostTestOpen = $status === \App\Enums\RealizationStatus::COMPLETED;
+                        // ------------------------------------------
                     @endphp
 
                     {{-- Pre-Test Card --}}
@@ -136,18 +147,26 @@
                             <div class="card-text flex flex-col justify-center">
                                 <p class="text-sm text-gray-500 leading-none">Pre-Test</p>
                                 <h3 class="font-semibold text-gray-900 text-base leading-tight mt-1">{{ $tna->name }}</h3>
-                                <p class="text-xs text-gray-400 mt-1">Tersedia sebelum: {{ $startDate->format('d M Y H:i') }}</p>
+                                <p class="text-xs text-gray-400 mt-1">
+                                    Status: 
+                                    @if($isPreTestOpen) <span class="text-green-600 font-semibold">Tersedia</span>
+                                    @else <span class="text-red-500">Ditutup</span> @endif
+                                </p>
                             </div>
                         </div>
 
-                        @if($hasPreTest)
+                        @if($preTestAttempt)
                             <a href="{{ route('evaluasi2.review', [$registration, 'pre-test']) }}" 
                                class="px-4 py-2 bg-[#17A2B8] text-white text-sm font-semibold rounded-md hover:bg-[#138496] transition-all duration-200 whitespace-nowrap min-w-[180px] text-center leading-none">
                                 Review (Skor: {{ number_format($preTestAttempt->score, 0) }})
                             </a>
-                        @elseif($now->gte($startDate))
+                        @elseif(!$isPreTestOpen)
                             <span class="px-4 py-2 bg-gray-100 text-gray-500 text-sm font-semibold rounded-md whitespace-nowrap min-w-[180px] text-center leading-none">
-                                Sudah Berakhir
+                                @if($status === \App\Enums\RealizationStatus::COMPLETED)
+                                    Sudah Berakhir
+                                @else
+                                    Tidak Tersedia
+                                @endif
                             </span>
                         @else
                             <a href="{{ route('evaluasi2.quiz.form', [$registration, 'pre-test']) }}" 
@@ -166,16 +185,20 @@
                             <div class="card-text flex flex-col justify-center">
                                 <p class="text-sm text-gray-500 leading-none">Post-Test</p>
                                 <h3 class="font-semibold text-gray-900 text-base leading-tight mt-1">{{ $tna->name }}</h3>
-                                <p class="text-xs text-gray-400 mt-1">Tersedia: {{ $endDate->format('d M Y H:i') }} - {{ $postTestEnd->format('H:i') }}</p>
+                                <p class="text-xs text-gray-400 mt-1">
+                                    Status: 
+                                    @if($isPostTestOpen) <span class="text-green-600 font-semibold">Tersedia</span>
+                                    @else <span class="text-gray-500">Menunggu Selesai</span> @endif
+                                </p>
                             </div>
                         </div>
 
-                        @if($hasPostTest)
+                        @if($postTestAttempt)
                             <a href="{{ route('evaluasi2.review', [$registration, 'post-test']) }}" 
                                class="px-4 py-2 bg-[#17A2B8] text-white text-sm font-semibold rounded-md hover:bg-[#138496] transition-all duration-200 whitespace-nowrap min-w-[180px] text-center leading-none">
                                 Review (Skor: {{ number_format($postTestAttempt->score, 0) }})
                             </a>
-                        @elseif($now->lt($endDate) || $now->gt($postTestEnd))
+                        @elseif(!$isPostTestOpen)
                             <span class="px-4 py-2 bg-gray-100 text-gray-500 text-sm font-semibold rounded-md whitespace-nowrap min-w-[180px] text-center leading-none">
                                 Belum Tersedia
                             </span>

@@ -1,8 +1,16 @@
 @php
     // Logika untuk menentukan mode Tambah atau Edit
     // $tna dan $availableUsers dikirim dari TnaController@edit
+    use App\Enums\RealizationStatus;
     $isEdit = isset($tna) && $tna->id;
-    $availableUsers = $availableUsers ?? collect(); // Set default koleksi kosong jika mode Tambah
+    $availableUsers = $availableUsers ?? collect();
+
+    // Tentukan apakah Mode Baca Saja (View Only)
+    // ReadOnly jika Edit Mode DAN Statusnya COMPLETED atau CANCELED
+    $isReadOnly = $isEdit && in_array($tna->realization_status, [
+        RealizationStatus::COMPLETED,
+        RealizationStatus::CANCELED
+    ]);
 @endphp
 
 @extends('layouts.admin')
@@ -10,12 +18,25 @@
 {{-- Judul dinamis --}}
 @section('title', $isEdit ? 'Ubah Data TNA' : 'Tambah Data TNA')
 @section('page_title', $isEdit ? 'TNA - Ubah Data TNA' : 'TNA - Tambah Data TNA')
-
 @section('content')
-@php
-    use App\Enums\RealizationStatus;
-@endphp
+
 <div class="max-w-4xl mx-auto">
+    @if($isReadOnly)
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-yellow-700">
+                        <strong>Perhatian:</strong> Halaman ini dalam mode <u>View-Only</u> karena status pelatihan sudah Selesai atau Dibatalkan. Anda tidak dapat mengubah data.
+                    </p>
+                </div>
+            </div>
+        </div>
+    @endif
     
     {{-- REVISI: Tambahkan blok ini untuk menampilkan error validasi --}}
     @if ($errors->any())
@@ -48,13 +69,13 @@
                     <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nama Pelatihan</label>
                     {{-- REVISI: name="nama_pelatihan" -> name="name" --}}
                     <input type="text" id="name" name="name" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" 
-                           value="{{ old('name', $tna->name ?? '') }}" required>
+                           value="{{ old('name', $tna->name ?? '') }}" required @disabled($isReadOnly)>
                 </div>
                  <div>
                     <label for="passing_score" class="block text-sm font-medium text-gray-700 mb-1">Skor Kelulusan</label>
                     {{-- (Pastikan 'passing_score' ada di $fillable Tna.php) --}}
                     <input type="text" id="passing_score" name="passing_score" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" 
-                           value="{{ old('passing_score', $tna->passing_score ?? '') }}" placeholder="Contoh: 75" required>
+                           value="{{ old('passing_score', $tna->passing_score ?? '') }}" placeholder="Contoh: 75" required @disabled($isReadOnly)>
                 </div>
 
                 <div>
@@ -77,14 +98,14 @@
                     <label for="period" class="block text-sm font-medium text-gray-700 mb-1">Periode</label>
                     {{-- REVISI: name="periode" -> name="period" --}}
                     <input type="text" id="period" name="period" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" 
-                           value="{{ old('period', $tna->period ?? date('Y')) }}" placeholder="Contoh: 2025" required>
+                           value="{{ old('period', $tna->period ?? date('Y')) }}" placeholder="Contoh: 2025" required @disabled($isReadOnly)>
                 </div>
                 
                 <div class="col-span-2">
                     <label for="method" class="block text-sm font-medium text-gray-700 mb-1">Metode Pelatihan</label>
                     {{-- REVISI: name="metode_pelatihan" -> name="method" --}}
                     <input type="text" id="method" name="method" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" 
-                           value="{{ old('method', $tna->method ?? '') }}" placeholder="Contoh: In-House / Online" required>
+                           value="{{ old('method', $tna->method ?? '') }}" placeholder="Contoh: In-House / Online" required @disabled($isReadOnly)>
                 </div>
             </div>
         </div>
@@ -97,20 +118,20 @@
                     <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai</label>
                     {{-- REVISI: name="tanggal_mulai" -> name="start_date" --}}
                     <input type="datetime-local" id="start_date" name="start_date" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" 
-                           value="{{ old('start_date', ($isEdit && $tna->start_date) ? $tna->start_date->format('Y-m-d\TH:i') : '') }}" required>
+                           value="{{ old('start_date', ($isEdit && $tna->start_date) ? $tna->start_date->format('Y-m-d\TH:i') : '') }}" required @disabled($isReadOnly)>
                 </div>
                 <div>
                     <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Selesai</label>
                     {{-- REVISI: name="tanggal_selesai" -> name="end_date" --}}
                     <input type="datetime-local" id="end_date" name="end_date" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" 
-                           value="{{ old('end_date', ($isEdit && $tna->end_date) ? $tna->end_date->format('Y-m-d\TH:i') : '') }}" required>
+                           value="{{ old('end_date', ($isEdit && $tna->end_date) ? $tna->end_date->format('Y-m-d\TH:i') : '') }}" required @disabled($isReadOnly)>
                 </div>
                 
                 <div>
                     <label for="speaker" class="block text-sm font-medium text-gray-700 mb-1">Pembicara</label>
                     {{-- REVISI: name="pembicara" -> name="speaker" --}}
                     <input type="text" id="speaker" name="speaker" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" 
-                           value="{{ old('speaker', $tna->speaker ?? '') }}" placeholder="Nama Pembicara/Instruktur" required>
+                           value="{{ old('speaker', $tna->speaker ?? '') }}" placeholder="Nama Pembicara/Instruktur" required @disabled($isReadOnly)>
                 </div>
                 <div>
                     <label for="batch" class="block text-sm font-medium text-gray-700 mb-1">Batch Kegiatan</label>
@@ -121,7 +142,7 @@
                 <div class="col-span-2">
                      <label for="spt_file_path" class="block text-sm font-medium text-gray-700 mb-1">File SPT Instruktur (Opsional)</label>
                      {{-- REVISI: name="file_spt" -> name="spt_file_path" --}}
-                     <input type="file" id="spt_file_path" name="spt_file_path" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500">
+                     <input type="file" id="spt_file_path" name="spt_file_path" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" @disabled($isReadOnly)>
                      @if($isEdit && $tna->spt_file_path)
                         <small class="text-gray-500">File saat ini: <a href="{{ asset('storage/'. $tna->spt_file_path) }}" target="_blank" class="text-blue-600 hover:underline">Lihat File</a></small>
                      @endif
@@ -135,21 +156,21 @@
             <div class="grid grid-cols-2 gap-6 mb-4">
                 <div>
                     <label for="reason" class="block text-sm font-medium text-gray-700 mb-1">Alasan</label>
-                    <textarea id="reason" name="reason" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" required>{{ old('reason', $tna->reason ?? '') }}</textarea>
+                    <textarea id="reason" name="reason" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" required @disabled($isReadOnly)>{{ old('reason', $tna->reason ?? '') }}</textarea>
                 </div>
                 <div>
                     <label for="before_status" class="block text-sm font-medium text-gray-700 mb-1">Kondisi Sebelum</label>
-                    <textarea id="before_status" name="before_status" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" required>{{ old('before_status', $tna->before_status ?? '') }}</textarea>
+                    <textarea id="before_status" name="before_status" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" required @disabled($isReadOnly)>{{ old('before_status', $tna->before_status ?? '') }}</textarea>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-6 mb-4">
                 <div>
                     <label for="goal" class="block text-sm font-medium text-gray-700 mb-1">Tujuan</label>
-                    <textarea id="goal" name="goal" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" required>{{ old('goal', $tna->goal ?? '') }}</textarea>
+                    <textarea id="goal" name="goal" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" required @disabled($isReadOnly)>{{ old('goal', $tna->goal ?? '') }}</textarea>
                 </div>
                 <div>
                     <label for="after_status" class="block text-sm font-medium text-gray-700 mb-1">Kondisi Diharapkan</label>
-                    <textarea id="after_status" name="after_status" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" required>{{ old('after_status', $tna->after_status ?? '') }}</textarea>
+                    <textarea id="after_status" name="after_status" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" required @disabled($isReadOnly)>{{ old('after_status', $tna->after_status ?? '') }}</textarea>
                 </div>
             </div>
             <div class="form-group">
@@ -186,9 +207,11 @@
             <a href="{{ route('admin.tnas.index') }}" class="px-6 py-2 border border-gray-400 text-gray-700 font-semibold rounded-lg shadow-sm bg-gray-300 hover:bg-gray-400 transition duration-200">
                 Kembali
             </a>
-            <button type="submit" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-200">
-                {{ $isEdit ? 'Simpan Perubahan TNA' : 'Simpan TNA' }}
-            </button>
+            @if(!$isReadOnly)
+                <button type="submit" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-200">
+                    {{ $isEdit ? 'Simpan Perubahan TNA' : 'Simpan TNA' }}
+                </button>
+            @endif
         </div>
         
     </form> {{-- Form TNA UTAMA SELESAI DI SINI --}}
@@ -198,13 +221,15 @@
     <div class="bg-white p-8 rounded-xl shadow-lg mb-8" x-data="{ showParticipantForm: false }">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-bold text-gray-700 text-center">Daftar Karyawan Peserta ({{ $isEdit ? $tna->registrations->count() : 0 }})</h2>
-            
+            @php
+                $isStatusOpen = isset($tna) && $tna->realization_status === RealizationStatus::OPEN;
+            @endphp            
             <button
                 type="button"
                 @click="showParticipantForm = !showParticipantForm"
                 class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-blue-700 transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                @disabled(!$isEdit)
-                title="{{ !$isEdit ? 'Simpan TNA terlebih dahulu untuk menambah peserta' : 'Pilih peserta untuk TNA ini' }}"
+                @disabled(!$isEdit || !$isStatusOpen)
+                title="{{ !$isEdit ? 'Simpan TNA terlebih dahulu untuk menambah peserta' : (!$isStatusOpen ? 'Status harus Belum Terealisasi untuk edit peserta' : 'Pilih peserta') }}"
             >
                 <span x-show="!showParticipantForm">Pilih Peserta</span>
                 <span x-show="showParticipantForm">Tutup Form</span>
@@ -272,13 +297,15 @@
                                     {{ $registration->user->unit->unit_name ?? 'N/A' }}
                                 </td>
                                 <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
-                                    <form action="{{ route('admin.registrations.destroy', $registration->id) }}" method="POST" onsubmit="return confirm('Hapus peserta ini dari TNA?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-500 hover:text-red-700 mx-1 align-middle">
-                                            <img src="{{ asset('icons/Button Trash.svg') }}" class="w-8 h-8 inline" alt="Delete">
-                                        </button>
-                                    </form>
+                                    @if($isStatusOpen)
+                                        <form action="{{ route('admin.registrations.destroy', $registration->id) }}" method="POST" onsubmit="return confirm('Hapus peserta ini dari TNA?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-500 hover:text-red-700 mx-1 align-middle">
+                                                <img src="{{ asset('icons/Button Trash.svg') }}" class="w-8 h-8 inline" alt="Delete">
+                                            </button>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                             @empty

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Cache;
 use App\Models\Tna;
 use App\Models\User;
 use App\Models\Registration;
+use App\Enums\RegistrationStatus;
 use App\Enums\RealizationStatus;
 use Illuminate\Validation\Rule;
 use App\Http\Requests\Admin\StoreTnaRequest;
@@ -90,6 +91,14 @@ class TnaController extends Controller
 
     public function update(UpdateTnaRequest $request, Tna $tna)
     {
+        // SECURITY: Cegah edit jika sudah selesai/batal
+        if (in_array($tna->realization_status, [
+            RealizationStatus::COMPLETED,
+            RealizationStatus::CANCELED
+        ])) {
+            return back()->with('error', 'Data tidak dapat diubah karena pelatihan sudah Selesai/Dibatalkan (View-Only).');
+        }
+        
         $this->authorize('update', $tna);
         
         $validated = $request->validated();
@@ -114,6 +123,11 @@ class TnaController extends Controller
 
     public function destroy(Tna $tna)
     {
+        // SECURITY: Hanya boleh hapus jika OPEN (Belum jalan)
+        if ($tna->realization_status !== RealizationStatus::OPEN) {
+            return back()->with('error', 'Hanya pelatihan berstatus OPEN yang dapat dihapus.');
+        }
+
         $this->authorize('delete', $tna);
         
         // Simpan ID peserta dulu sebelum dihapus datanya
@@ -149,6 +163,11 @@ class TnaController extends Controller
 
     public function storeRegistration(Request $request, Tna $tna)
     {
+        // SECURITY: Cuma boleh nambah peserta kalau status OPEN
+        if ($tna->realization_status !== RealizationStatus::OPEN) {
+            return back()->with('error', 'Peserta hanya dapat ditambahkan saat status TNA masih OPEN.');
+        }
+
         $this->authorize('manageParticipants', $tna);
 
         $validated = $request->validate([
@@ -162,7 +181,7 @@ class TnaController extends Controller
         ]);
         
         $validated['regist_date'] = now();
-        $validated['status'] = \App\Enums\RegistrationStatus::TERDAFTAR;
+        $validated['status'] = RegistrationStatus::TERDAFTAR;
         
         $tna->registrations()->create($validated);
         
@@ -177,6 +196,11 @@ class TnaController extends Controller
     {
         $tna = $registration->tna;
         $userId = $registration->user_id;
+
+        // SECURITY: Cuma boleh hapus peserta kalau status OPEN
+        if ($tna->realization_status !== RealizationStatus::OPEN) {
+            return back()->with('error', 'Peserta tidak dapat dihapus jika pelatihan sudah berjalan/selesai.');
+        }
 
         $this->authorize('manageParticipants', $tna);
         

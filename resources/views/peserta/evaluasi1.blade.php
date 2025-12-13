@@ -121,7 +121,7 @@
                         $hasFeedback = $registration->feedbackResult;
                         
                         // PRODUCTION: Hanya bisa akses setelah end_date
-                        $canAccess = now()->gt(\Carbon\Carbon::parse($tna->end_date));
+                        $canAccess = $tna->realization_status === App\Enums\RealizationStatus::COMPLETED;
                         
                         // TESTING: Uncomment baris di bawah untuk testing (bisa akses kapan saja)
                         // $canAccess = true;
@@ -146,7 +146,7 @@
                             </a>
                         @elseif(!$canAccess)
                             <span class="px-4 py-2 bg-gray-100 text-gray-500 text-sm font-semibold rounded-md whitespace-nowrap min-w-[180px] text-center leading-none">
-                                Tersedia setelah {{ \Carbon\Carbon::parse($tna->end_date)->format('d M Y H:i') }}
+                                Menunggu Status Pelatihan Selesai
                             </span>
                         @else
                             <a href="{{ route('evaluasi1.form', $registration) }}" 
