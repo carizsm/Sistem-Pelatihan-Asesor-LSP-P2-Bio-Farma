@@ -211,11 +211,23 @@ class EvaluationController extends Controller
             if ($tna->realization_status === RealizationStatus::COMPLETED) abort(403, 'Pre-test sudah ditutup.');
             if ($tna->realization_status === RealizationStatus::CANCELED) abort(403, 'Pre-test dibatalkan.');
         } elseif ($type === 'post-test') {
-            if ($tna->realization_status !== RealizationStatus::COMPLETED) abort(403, 'Post-test belum dibuka.');
+            // POST-TEST: Butuh status COMPLETED + masih dalam window 1 jam setelah end_date
+            if ($tna->realization_status !== RealizationStatus::COMPLETED) {
+                abort(403, 'Post-test belum dibuka.');
+            }
+            
+            $endDate = \Carbon\Carbon::parse($tna->end_date);
+            $now = now();
+            if ($now->gt($endDate->copy()->addHour())) {
+                abort(403, 'Waktu pengerjaan Post-test sudah habis (maksimal 1 jam setelah pelatihan selesai).');
+            }
         }
 
+        // 3. CEK KETERSEDIAAN SOAL (Sebelum masuk ke view)
         if ($questions->isEmpty()) {
-            return redirect()->route('peserta.evaluasi2')->with('error', 'Belum ada soal.');
+            $typeName = $type === 'pre-test' ? 'Pre-Test' : 'Post-Test';
+            return redirect()->route('peserta.evaluasi2')
+                ->with('error', "Soal {$typeName} untuk pelatihan '{$tna->name}' belum tersedia. Silakan hubungi administrator.");
         }
 
         return view('peserta.quiz', compact('registration', 'tna', 'questions', 'type'));
@@ -236,7 +248,16 @@ class EvaluationController extends Controller
                 abort(403, 'Waktu pengerjaan Pre-test sudah habis.');
             }
         } elseif ($type === 'post-test') {
-            if ($tna->realization_status !== RealizationStatus::COMPLETED) abort(403, 'Post-test belum dibuka.');
+            // POST-TEST: Butuh status COMPLETED + masih dalam window 1 jam setelah end_date
+            if ($tna->realization_status !== RealizationStatus::COMPLETED) {
+                abort(403, 'Post-test belum dibuka.');
+            }
+            
+            $endDate = \Carbon\Carbon::parse($tna->end_date);
+            $now = now();
+            if ($now->gt($endDate->copy()->addHour())) {
+                abort(403, 'Waktu pengerjaan Post-test sudah habis (maksimal 1 jam setelah pelatihan selesai).');
+            }
         }
 
         // Anti-Jebol

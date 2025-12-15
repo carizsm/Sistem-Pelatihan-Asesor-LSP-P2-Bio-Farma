@@ -40,18 +40,20 @@ class DashboardController extends Controller {
             $hasPostTest = $registration->quizAttempts->where('type', 'post-test')->isNotEmpty();
             
             // Ada task jika:
-            // 1. Pre-test belum dikerjakan dan masih sebelum start_date
-            if (!$hasPreTest && $now->lt($startDate)) {
+            // 1. Pre-test belum dikerjakan dan status TNA OPEN atau RUNNING
+            if (!$hasPreTest && in_array($tna->realization_status, [\App\Enums\RealizationStatus::OPEN, \App\Enums\RealizationStatus::RUNNING])) {
                 return true;
             }
             
-            // 2. Post-test belum dikerjakan dan dalam window 30 menit setelah end_date
-            if (!$hasPostTest && $now->between($endDate, $endDate->copy()->addMinutes(30))) {
+            // 2. Post-test belum dikerjakan, status TNA COMPLETED, dan maksimal 1 jam setelah end_date
+            if (!$hasPostTest && 
+                $tna->realization_status === \App\Enums\RealizationStatus::COMPLETED &&
+                $now->lte($endDate->copy()->addHour())) {
                 return true;
             }
             
-            // 3. Feedback belum dikerjakan dan sudah setelah end_date
-            if (!$hasFeedback && $now->gt($endDate)) {
+            // 3. Feedback belum dikerjakan dan status TNA COMPLETED
+            if (!$hasFeedback && $tna->realization_status === \App\Enums\RealizationStatus::COMPLETED) {
                 return true;
             }
             

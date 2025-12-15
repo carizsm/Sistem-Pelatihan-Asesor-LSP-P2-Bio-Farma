@@ -156,27 +156,8 @@
                             $endDate = \Carbon\Carbon::parse($tna->end_date);
                         @endphp
 
-                        {{-- Feedback Task --}}
-                        @if(!$hasFeedback && $now->gt($endDate))
-                            <div class="card-content bg-white rounded-lg shadow-sm px-5 py-3 flex justify-between items-center border border-gray-200">
-                                <div class="flex items-center gap-3">
-                                    <div class="flex items-center justify-center w-10 h-10 bg-[#E6F4F1] rounded-md shrink-0">
-                                        <img src="{{ asset('icons/Evaluasi 1.svg') }}" class="w-10 h-10" alt="Evaluasi 1">
-                                    </div>
-                                    <div class="card-text flex flex-col justify-center">
-                                        <p class="text-sm text-gray-500 leading-none">Evaluasi 1</p>
-                                        <h3 class="font-semibold text-gray-900 text-base leading-tight mt-1">{{ $tna->name }}</h3>
-                                    </div>
-                                </div>
-                                <a href="{{ route('evaluasi1.form', $registration) }}" 
-                                   class="card-button bg-[#F26E22] hover:bg-[#d65c1c] text-white text-sm font-semibold px-4 py-2 rounded-md transition shrink-0">
-                                   Kerjakan
-                                </a>
-                            </div>
-                        @endif
-
                         {{-- Pre-Test Task --}}
-                        @if(!$hasPreTest && $now->lt($startDate))
+                        @if(!$hasPreTest && in_array($tna->realization_status, [\App\Enums\RealizationStatus::OPEN, \App\Enums\RealizationStatus::RUNNING]))
                             <div class="card-content bg-white rounded-lg shadow-sm px-5 py-3 flex justify-between items-center border border-gray-200">
                                 <div class="flex items-center gap-3">
                                     <div class="flex items-center justify-center w-10 h-10 bg-[#E6F4F1] rounded-md shrink-0">
@@ -195,7 +176,9 @@
                         @endif
 
                         {{-- Post-Test Task --}}
-                        @if(!$hasPostTest && $now->between($endDate, $endDate->copy()->addMinutes(30)))
+                        @if(!$hasPostTest && 
+                            $tna->realization_status === \App\Enums\RealizationStatus::COMPLETED &&
+                            $now->lte($endDate->copy()->addHour()))
                             <div class="card-content bg-white rounded-lg shadow-sm px-5 py-3 flex justify-between items-center border border-gray-200">
                                 <div class="flex items-center gap-3">
                                     <div class="flex items-center justify-center w-10 h-10 bg-[#E6F4F1] rounded-md shrink-0">
@@ -213,8 +196,8 @@
                             </div>
                         @endif
 
-                        {{-- Task Completed --}}
-                        @if($hasFeedback && $now->gt($endDate))
+                        {{-- Feedback Task --}}
+                        @if(!$hasFeedback && $tna->realization_status === \App\Enums\RealizationStatus::COMPLETED && $now->gt($endDate))
                             <div class="card-content bg-white rounded-lg shadow-sm px-5 py-3 flex justify-between items-center border border-gray-200">
                                 <div class="flex items-center gap-3">
                                     <div class="flex items-center justify-center w-10 h-10 bg-[#E6F4F1] rounded-md shrink-0">

@@ -108,6 +108,33 @@
                 @yield('header', 'Evaluasi 2') 
             </h1> 
         </div>
+
+        {{-- Notifikasi Error --}}
+        @if(session('error'))
+            <div class="mb-4 p-4 rounded-lg bg-red-100 border border-red-300 text-red-800 flex items-start gap-3">
+                <svg class="w-6 h-6 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+                <div>
+                    <p class="font-semibold mb-1">Tidak Dapat Mengakses Kuis</p>
+                    <p class="text-sm">{{ session('error') }}</p>
+                </div>
+            </div>
+        @endif
+
+        {{-- Notifikasi Success --}}
+        @if(session('success'))
+            <div class="mb-4 p-4 rounded-lg bg-green-100 border border-green-300 text-green-800 flex items-start gap-3">
+                <svg class="w-6 h-6 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                <div>
+                    <p class="font-semibold mb-1">Berhasil!</p>
+                    <p class="text-sm">{{ session('success') }}</p>
+                </div>
+            </div>
+        @endif
+
         {{-- Isi Konten --}}
         <div class="mt-3"> 
             <h2 class="text-xl font-semibold mb-4">Daftar Evaluasi 2</h2> 
@@ -123,18 +150,24 @@
                         $postTestAttempt = $registration->quizAttempts->where('type', 'post-test')->first();
                         
                         // --- SECURITY STATUS CHECK (LOGIC BARU) ---
-                        // Import Enum kalau belum di-import di atas, atau pakai Full Namespace
                         $status = $tna->realization_status;
+                        $now = now();
+                        $endDate = \Carbon\Carbon::parse($tna->end_date);
                         
                         // PRE-TEST: Buka saat Persiapan (OPEN) atau Sedang Jalan (RUNNING)
-                        // Tutup kalau sudah Selesai (COMPLETED) atau Batal (CANCELED)
-                        $isPreTestOpen = in_array($status, [
+                        // Tutup kalau sudah dikerjakan ATAU status COMPLETED/CANCELED
+                        $isPreTestOpen = !$preTestAttempt && in_array($status, [
                             \App\Enums\RealizationStatus::OPEN, 
                             \App\Enums\RealizationStatus::RUNNING
                         ]);
                         
-                        // POST-TEST: Buka HANYA saat Selesai (COMPLETED)
-                        $isPostTestOpen = $status === \App\Enums\RealizationStatus::COMPLETED;
+                        // POST-TEST: Buka HANYA saat:
+                        // 1. Status COMPLETED
+                        // 2. Belum dikerjakan
+                        // 3. Masih dalam window 1 jam setelah end_date
+                        $isPostTestOpen = !$postTestAttempt && 
+                                         $status === \App\Enums\RealizationStatus::COMPLETED &&
+                                         $now->lte($endDate->copy()->addHour());
                         // ------------------------------------------
                     @endphp
 
@@ -193,8 +226,15 @@
                                 </p>
                                 <p class="text-xs text-gray-400 mt-1">
                                     Status: 
-                                    @if($isPostTestOpen) <span class="text-green-600 font-semibold">Tersedia</span>
-                                    @else <span class="text-gray-500">Menunggu Selesai</span> @endif
+                                    @if($postTestAttempt)
+                                        <span class="text-gray-500">Ditutup (Sudah Dikerjakan)</span>
+                                    @elseif($isPostTestOpen)
+                                        <span class="text-green-600 font-semibold">Tersedia</span>
+                                    @elseif($status === \App\Enums\RealizationStatus::COMPLETED && $now->gt($endDate->copy()->addHour()))
+                                        <span class="text-red-500">Ditutup (Waktu Habis)</span>
+                                    @else
+                                        <span class="text-gray-500">Menunggu Selesai</span>
+                                    @endif
                                 </p>
                             </div>
                         </div>
