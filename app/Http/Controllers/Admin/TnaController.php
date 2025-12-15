@@ -89,34 +89,56 @@ class TnaController extends Controller
         return view('admin.tnas.form', compact('tna', 'availableUsers'));
     }
 
-    public function update(UpdateTnaRequest $request, Tna $tna)
+    public function update(Request $request, Tna $tna)
     {
-        // SECURITY: Cegah edit jika sudah selesai/batal
-        if (in_array($tna->realization_status, [
-            RealizationStatus::COMPLETED,
-            RealizationStatus::CANCELED
-        ])) {
-            return back()->with('error', 'Data tidak dapat diubah karena pelatihan sudah Selesai/Dibatalkan (View-Only).');
-        }
-        
         $this->authorize('update', $tna);
+
+        // --- SKENARIO 1: JIKA TNA SUDAH SELESAI/BATAL (Mode View-Only) ---
+        // Di sini kita hanya mengizinkan update pada kolom 'realization_status'
+        if (in_array($tna->realization_status, [RealizationStatus::COMPLETED, RealizationStatus::CANCELED])) {
+            
+            // 1. Validasi HANYA input status (abaikan name, method, dll yang kosong)
+            $request->validate([
+                'realization_status' => 'required|string'
+            ]);
+
+            // 2. Ambil status baru
+            $newStatus = $request->realization_status;
+
+            // 3. Update HANYA kolom status. Kolom lain biarkan data lama di DB.
+            $tna->update([
+                'realization_status' => $newStatus
+            ]);
+
+            // 4. Bersih-bersih cache
+            $participantIds = $tna->registrations->pluck('user_id')->toArray();
+            $this->flushTnaCache($tna, $participantIds);
+
+            return redirect()->route('admin.tnas.index')
+                ->with('success', 'Status TNA berhasil diperbarui.');
+        }
+
+        // --- SKENARIO 2: JIKA TNA MASIH OPEN/RUNNING (Mode Edit Normal) ---
+        // Di sini kita validasi SEMUA field karena form terbuka penuh
         
-        $validated = $request->validated();
-        
+        // Panggil rules dari UpdateTnaRequest secara manual
+        $validated = $request->validate((new UpdateTnaRequest)->rules());
+
+        // Logic Upload File (Sama seperti sebelumnya)
         if ($request->hasFile('spt_file_path')) {
             if ($tna->spt_file_path && Storage::disk('public')->exists($tna->spt_file_path)) {
                 Storage::disk('public')->delete($tna->spt_file_path);
             }
             $validated['spt_file_path'] = $request->file('spt_file_path')->store('spt_files', 'public');
         }
-        
+
+        // Update Semua Data
         $tna->update($validated);
-        
-        // Bersih-bersih: Global + Laporan TNA + SEMUA Peserta yg terdaftar
-        // Kita ambil ID peserta untuk membersihkan cache dashboard mereka
+
+        // Bersih-bersih cache
         $participantIds = $tna->registrations->pluck('user_id')->toArray();
         $this->flushTnaCache($tna, $participantIds);
-        
+
         return redirect()->route('admin.tnas.index')
             ->with('success', 'Data TNA berhasil diperbarui.');
     }
