@@ -190,7 +190,7 @@
                                     </div>
                                 </div>
                                 <a href="{{ route('evaluasi2.quiz.form', [$registration, 'post-test']) }}" 
-                                   class="card-button bg-[#F26E22] hover:bg-[#d65c1c] text-white text-sm font-semibold px-4 py-2 rounded-md transition shrink-0">
+                                   class="card-button bg-[#F26E22] hover:bg-[#d65c1c] text-white text-center text-sm font-semibold min-w-[120px] px-4 py-2 rounded-md transition shrink-0">
                                    Kerjakan
                                 </a>
                             </div>
@@ -209,8 +209,8 @@
                                     </div>
                                 </div>
                                 <a href="{{ route('evaluasi1.review', $registration) }}" 
-                                   class="card-button bg-[#17A2B8] hover:bg-[#138496] text-white text-sm font-semibold px-4 py-2 rounded-md transition shrink-0">
-                                   Review
+                                   class="card-button bg-[#F26E22] hover:bg-[#d65c1c] text-white text-center text-sm font-semibold min-w-[120px] px-4 py-2 rounded-md transition shrink-0">
+                                   Kerjakan
                                 </a>
                             </div>
                         @endif

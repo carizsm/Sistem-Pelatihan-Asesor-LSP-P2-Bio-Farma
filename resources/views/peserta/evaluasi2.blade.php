@@ -193,11 +193,11 @@
 
                         @if($preTestAttempt)
                             <a href="{{ route('evaluasi2.review', [$registration, 'pre-test']) }}" 
-                               class="px-4 py-2 bg-[#17A2B8] text-white text-sm font-semibold rounded-md hover:bg-[#138496] transition-all duration-200 whitespace-nowrap min-w-[180px] text-center leading-none">
-                                Review (Skor: {{ number_format($preTestAttempt->score, 0) }})
+                               class="px-4 py-2 bg-[#17A2B8] text-white text-sm font-semibold rounded-md hover:bg-[#138496] transition-all duration-200 whitespace-nowrap min-w-[140px] text-center leading-none">
+                                Review
                             </a>
                         @elseif(!$isPreTestOpen)
-                            <span class="px-4 py-2 bg-gray-100 text-gray-500 text-sm font-semibold rounded-md whitespace-nowrap min-w-[180px] text-center leading-none">
+                            <span class="px-4 py-2 bg-gray-100 text-gray-500 text-sm font-semibold rounded-md whitespace-nowrap min-w-[140px] text-center leading-none">
                                 @if($status === \App\Enums\RealizationStatus::COMPLETED)
                                     Sudah Berakhir
                                 @else
@@ -206,7 +206,7 @@
                             </span>
                         @else
                             <a href="{{ route('evaluasi2.quiz.form', [$registration, 'pre-test']) }}" 
-                               class="px-4 py-2 bg-[#F26E22] hover:bg-[#d65c1c] text-white text-sm font-semibold rounded-md transition whitespace-nowrap min-w-[180px] text-center leading-none">
+                               class="px-4 py-2 bg-[#F26E22] hover:bg-[#d65c1c] text-white text-sm font-semibold rounded-md transition whitespace-nowrap min-w-[140px] text-center leading-none">
                                Kerjakan
                             </a>
                         @endif
@@ -226,12 +226,10 @@
                                 </p>
                                 <p class="text-xs text-gray-400 mt-1">
                                     Status: 
-                                    @if($postTestAttempt)
-                                        <span class="text-gray-500">Ditutup (Sudah Dikerjakan)</span>
+                                    @if($postTestAttempt || ($status === \App\Enums\RealizationStatus::COMPLETED && $now->gt($endDate->copy()->addHour())))
+                                        <span class="text-red-500">Ditutup</span>
                                     @elseif($isPostTestOpen)
                                         <span class="text-green-600 font-semibold">Tersedia</span>
-                                    @elseif($status === \App\Enums\RealizationStatus::COMPLETED && $now->gt($endDate->copy()->addHour()))
-                                        <span class="text-red-500">Ditutup (Waktu Habis)</span>
                                     @else
                                         <span class="text-gray-500">Menunggu Selesai</span>
                                     @endif
@@ -241,16 +239,16 @@
 
                         @if($postTestAttempt)
                             <a href="{{ route('evaluasi2.review', [$registration, 'post-test']) }}" 
-                               class="px-4 py-2 bg-[#17A2B8] text-white text-sm font-semibold rounded-md hover:bg-[#138496] transition-all duration-200 whitespace-nowrap min-w-[180px] text-center leading-none">
-                                Review (Skor: {{ number_format($postTestAttempt->score, 0) }})
+                               class="px-4 py-2 bg-[#17A2B8] text-white text-sm font-semibold rounded-md hover:bg-[#138496] transition-all duration-200 whitespace-nowrap min-w-[140px] text-center leading-none">
+                                Review
                             </a>
                         @elseif(!$isPostTestOpen)
-                            <span class="px-4 py-2 bg-gray-100 text-gray-500 text-sm font-semibold rounded-md whitespace-nowrap min-w-[180px] text-center leading-none">
+                            <span class="px-4 py-2 bg-gray-500 text-white text-sm font-semibold rounded-md whitespace-nowrap min-w-[140px] text-center leading-none">
                                 Belum Tersedia
                             </span>
                         @else
                             <a href="{{ route('evaluasi2.quiz.form', [$registration, 'post-test']) }}" 
-                               class="px-4 py-2 bg-[#F26E22] hover:bg-[#d65c1c] text-white text-sm font-semibold rounded-md transition whitespace-nowrap min-w-[180px] text-center leading-none">
+                               class="px-4 py-2 bg-[#F26E22] hover:bg-[#d65c1c] text-white text-sm font-semibold rounded-md transition whitespace-nowrap min-w-[140px] text-center leading-none">
                                Kerjakan
                             </a>
                         @endif

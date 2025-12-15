@@ -119,7 +119,7 @@
                     @if(!isset($attempt))
                         <button type="button" @click="submitQuiz()"
                             class="bg-[#F26E22] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#d65c1c] transition whitespace-nowrap">
-                            Selesaikan Quiz
+                            Selesai
                         </button>
                     @else
                         <a href="{{ route('peserta.evaluasi2') }}"

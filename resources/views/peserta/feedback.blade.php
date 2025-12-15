@@ -108,24 +108,9 @@
                     <h1 class="font-semibold text-lg">
                         Evaluasi 1 - {{ $tna->name }}
                         @if(isset($feedback))
-                            <span class="text-lg text-green-600 font-normal">(Review)</span>
+                            <span class="text-lg text-green-600 font-semibold">(Review)</span>
                         @endif
                     </h1>
-                </div>
-
-                {{-- Button kanan --}}
-                <div class="w-32 flex justify-end items-center"> 
-                    @if(!isset($feedback))
-                        <button type="submit" form="feedback-form"
-                            class="inline-flex items-center justify-center bg-[#F26E22] text-white text-sm px-3 h-8 rounded-lg font-semibold hover:bg-[#d65c1c] transition whitespace-nowrap leading-none">
-                            Selesaikan
-                        </button>
-                    @else
-                        <a href="{{ route('peserta.evaluasi1') }}"
-                           class="inline-flex items-center justify-center bg-gray-500 text-white text-sm px-3 h-8 rounded-lg font-semibold hover:bg-gray-600 transition whitespace-nowrap leading-none">
-                            Kembali
-                        </a>
-                    @endif
                 </div>
             </div>
 
@@ -224,6 +209,20 @@
                                 @endforeach
                             </tbody>
                         </table>
+                        {{-- Button kanan --}}
+                        <div class="mt-4 w-full flex justify-end items-center"> 
+                            @if(!isset($feedback))
+                                <button type="submit" form="feedback-form"
+                                    class="inline-flex items-center justify-center bg-[#F26E22] text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-[#d65c1c] min-w-[120px] transition whitespace-nowrap leading-none">
+                                    Selesai
+                                </button>
+                            @else
+                                <a href="{{ route('peserta.evaluasi1') }}"
+                                class="inline-flex items-center justify-center bg-gray-500 text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-gray-600 min-w-[120px] transition whitespace-nowrap leading-none">
+                                    Kembali
+                                </a>
+                            @endif
+                        </div>
                     </div>
 
                     {{-- HAPUS: Ringkasan skor tidak ditampilkan lagi --}}

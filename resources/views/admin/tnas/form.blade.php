@@ -197,15 +197,6 @@
                     @endforeach
                 </select>   
             </div>
-                {{-- <select id="realization_status" name="realization_status" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500 appearance-none" required>
-                    @foreach(RealizationStatus::cases() as $status)
-                        <option value="{{ $status->value }}" 
-                            {{ (old('realization_status', $tna->realization_status) == $status->value) ? 'selected' : '' }}>
-                            {{ $status->label() }}
-                        </option>
-                    @endforeach
-                </select> --}}
-            </div>
         </div>
 
         {{-- Tombol Aksi Utama untuk TNA Form --}}
@@ -213,11 +204,9 @@
             <a href="{{ route('admin.tnas.index') }}" class="px-6 py-2 border border-gray-400 text-gray-700 font-semibold rounded-lg shadow-sm bg-gray-300 hover:bg-gray-400 transition duration-200">
                 Kembali
             </a>
-            @if(!$isReadOnly)
-                <button type="submit" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-200">
-                    {{ $isEdit ? 'Simpan Perubahan TNA' : 'Simpan TNA' }}
-                </button>
-            @endif
+            <button type="submit" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-200">
+                {{ $isEdit ? 'Simpan Perubahan TNA' : 'Simpan TNA' }}
+            </button>
         </div>
         
     </form> {{-- Form TNA UTAMA SELESAI DI SINI --}}
@@ -291,67 +280,66 @@
             </form>
         </div>
 
-            {{-- TABEL PESERTA SAAT INI --}}
-            <div class="overflow-x-auto">
-                <table class="min-w-full leading-normal">
-                    <thead>
-                        <tr>
-                            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                Nama Karyawan
-                            </th>
-                            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                NIK
-                            </th>
-                            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                Nama Unit
-                            </th>
-                            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                Aksi
-                            </th>
+        {{-- TABEL PESERTA SAAT INI --}}
+        <div class="overflow-x-auto">
+            <table class="min-w-full leading-normal">
+                <thead>
+                    <tr>
+                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Nama Karyawan
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            NIK
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Nama Unit
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Aksi
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if($isEdit)
+                        @forelse($tna->registrations as $registration)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
+                                {{ $registration->user->name ?? 'N/A' }}
+                            </td>
+                            <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
+                                {{ $registration->user->nik ?? 'N/A' }}
+                            </td>
+                            <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
+                                {{ $registration->user->unit->unit_name ?? 'N/A' }}
+                            </td>
+                            <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
+                                @if($isStatusOpen)
+                                    <form action="{{ route('admin.registrations.destroy', $registration->id) }}" method="POST" onsubmit="return confirm('Hapus peserta ini dari TNA?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-500 hover:text-red-700 mx-1 align-middle">
+                                            <img src="{{ asset('icons/Button Trash.svg') }}" class="w-8 h-8 inline" alt="Delete">
+                                        </form>
+                                @endif
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @if($isEdit)
-                            @forelse($tna->registrations as $registration)
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
-                                    {{ $registration->user->name ?? 'N/A' }}
-                                </td>
-                                <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
-                                    {{ $registration->user->nik ?? 'N/A' }}
-                                </td>
-                                <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
-                                    {{ $registration->user->unit->unit_name ?? 'N/A' }}
-                                </td>
-                                <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
-                                    @if($isStatusOpen)
-                                        <form action="{{ route('admin.registrations.destroy', $registration->id) }}" method="POST" onsubmit="return confirm('Hapus peserta ini dari TNA?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-500 hover:text-red-700 mx-1 align-middle">
-                                                <img src="{{ asset('icons/Button Trash.svg') }}" class="w-8 h-8 inline" alt="Delete">
-                                            </form>
-                                    @endif
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="4" class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-center text-gray-500">
-                                    Belum ada peserta yang ditambahkan.
-                                </td>
-                            </tr>
-                            @endforelse
-                        @else
-                            <tr>
-                                <td colspan="4" class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-center text-gray-500">
-                                    Peserta hanya dapat ditambahkan setelah TNA disimpan (mode Edit).
-                                </td>
-                            </tr>
-                        @endif
-                    </tbody>
-                </table>
-            </div>
+                        @empty
+                        <tr>
+                            <td colspan="4" class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-center text-gray-500">
+                                Belum ada peserta yang ditambahkan.
+                            </td>
+                        </tr>
+                        @endforelse
+                    @else
+                        <tr>
+                            <td colspan="4" class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-center text-gray-500">
+                                Peserta hanya dapat ditambahkan setelah TNA disimpan (mode Edit).
+                            </td>
+                        </tr>
+                    @endif
+                </tbody>
+            </table>
         </div>
-        
+    </div>
 </div>
 @endsection

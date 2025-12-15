@@ -79,7 +79,7 @@ class PresenceController extends Controller
         // Status Check: Already clocked in?
         if ($registration->presence) {
             return redirect()->back()
-                ->with('error', 'Anda sudah melakukan clock-in.');
+                ->with('success', 'Anda sudah melakukan clock-in.');
         }
         
         // Create presence record
@@ -123,7 +123,7 @@ class PresenceController extends Controller
         // Status Check: Already clocked out?
         if ($presence->clock_out) {
             return redirect()->back()
-                ->with('error', 'Anda sudah melakukan clock-out.');
+                ->with('success', 'Anda sudah melakukan clock-out.');
         }
         
         // Update with clock-out time
