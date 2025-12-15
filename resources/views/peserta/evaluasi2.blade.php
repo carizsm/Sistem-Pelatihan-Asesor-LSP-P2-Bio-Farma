@@ -148,6 +148,9 @@
                                 <p class="text-sm text-gray-500 leading-none">Pre-Test</p>
                                 <h3 class="font-semibold text-gray-900 text-base leading-tight mt-1">{{ $tna->name }}</h3>
                                 <p class="text-xs text-gray-400 mt-1">
+                                    Periode: {{ \Carbon\Carbon::parse($tna->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($tna->end_date)->format('d M Y') }}
+                                </p>
+                                <p class="text-xs text-gray-400 mt-1">
                                     Status: 
                                     @if($isPreTestOpen) <span class="text-green-600 font-semibold">Tersedia</span>
                                     @else <span class="text-red-500">Ditutup</span> @endif
@@ -185,6 +188,9 @@
                             <div class="card-text flex flex-col justify-center">
                                 <p class="text-sm text-gray-500 leading-none">Post-Test</p>
                                 <h3 class="font-semibold text-gray-900 text-base leading-tight mt-1">{{ $tna->name }}</h3>
+                                <p class="text-xs text-gray-400 mt-1">
+                                    Periode: {{ \Carbon\Carbon::parse($tna->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($tna->end_date)->format('d M Y') }}
+                                </p>
                                 <p class="text-xs text-gray-400 mt-1">
                                     Status: 
                                     @if($isPostTestOpen) <span class="text-green-600 font-semibold">Tersedia</span>

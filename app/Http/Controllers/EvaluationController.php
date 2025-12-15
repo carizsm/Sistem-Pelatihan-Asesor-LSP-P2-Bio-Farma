@@ -131,6 +131,32 @@ class EvaluationController extends Controller
             ->with('success', 'Feedback berhasil disimpan. Terima kasih!');
     }
 
+    /**
+     * Review feedback yang sudah diisi (Read-only mode)
+     */
+    public function reviewFeedback(Registration $registration)
+    {
+        $user = Auth::user();
+        
+        // Authorization check
+        if ($registration->user_id !== $user->id) {
+            return redirect()->route('peserta.evaluasi1')->with('error', 'Akses ditolak.');
+        }
+
+        $registration->load('tna', 'feedbackResult');
+        
+        // Pastikan feedback sudah ada
+        if (!$registration->feedbackResult) {
+            return redirect()->route('peserta.evaluasi1')
+                ->with('error', 'Feedback belum diisi.');
+        }
+
+        $tna = $registration->tna;
+        $feedback = $registration->feedbackResult;
+
+        return view('peserta.feedback', compact('registration', 'tna', 'feedback'));
+    }
+
     // ==========================================
     // EVALUASI 2 (QUIZ: PRE-TEST & POST-TEST)
     // ==========================================
@@ -274,5 +300,46 @@ class EvaluationController extends Controller
 
         return redirect()->route('peserta.evaluasi2')
             ->with('success', 'Kuis berhasil diselesaikan. Skor: ' . number_format($score, 2));
+    }
+
+    /**
+     * Review quiz yang sudah dikerjakan (Read-only mode)
+     */
+    public function reviewQuiz(Registration $registration, string $type)
+    {
+        $user = Auth::user();
+
+        // Authorization check
+        if ($registration->user_id !== $user->id) {
+            return redirect()->route('peserta.evaluasi2')->with('error', 'Akses ditolak.');
+        }
+
+        // Validate type
+        if (!in_array($type, ['pre-test', 'post-test'])) {
+            return redirect()->route('peserta.evaluasi2')->with('error', 'Tipe kuis tidak valid.');
+        }
+
+        $registration->load('tna');
+        $tna = $registration->tna;
+        
+        // Ambil attempt dengan eager loading untuk review
+        $attempt = QuizAttempt::where('registration_id', $registration->id)
+            ->where('type', $type)
+            ->with(['traineeAnswers.quizQuestion.quizAnswers', 'traineeAnswers.quizAnswer']) 
+            ->first();
+
+        // Pastikan attempt sudah ada
+        if (!$attempt) {
+            return redirect()->route('peserta.evaluasi2')
+                ->with('error', ucfirst($type) . ' belum dikerjakan.');
+        }
+
+        // Ambil semua questions untuk keperluan navigasi
+        $questions = QuizQuestion::where('tna_id', $tna->id)
+            ->with('quizAnswers')
+            ->orderBy('question_number')
+            ->get();
+
+        return view('peserta.quiz', compact('registration', 'tna', 'questions', 'type', 'attempt'));
     }
 }

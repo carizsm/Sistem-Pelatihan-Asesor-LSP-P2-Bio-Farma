@@ -165,7 +165,8 @@ class TnaController extends Controller
     {
         // SECURITY: Cuma boleh nambah peserta kalau status OPEN
         if ($tna->realization_status !== RealizationStatus::OPEN) {
-            return back()->with('error', 'Peserta hanya dapat ditambahkan saat status TNA masih OPEN.');
+            return back()->with('participant_error', 'Peserta hanya dapat ditambahkan saat status TNA masih OPEN.')
+                ->withFragment('section-peserta');
         }
 
         $this->authorize('manageParticipants', $tna);
@@ -183,23 +184,29 @@ class TnaController extends Controller
         $validated['regist_date'] = now();
         $validated['status'] = RegistrationStatus::TERDAFTAR;
         
-        $tna->registrations()->create($validated);
+        $registration = $tna->registrations()->create($validated);
+        
+        // Ambil nama user untuk pesan sukses
+        $userName = User::find($validated['user_id'])->name ?? 'Peserta';
         
         // Bersih-bersih: Global + TNA + User Spesifik yg baru masuk
         $this->flushTnaCache($tna, $validated['user_id']);
         
         return redirect()->route('admin.tnas.edit', $tna)
-            ->with('success', 'Peserta berhasil ditambahkan.');
+            ->with('participant_success', "Peserta '{$userName}' berhasil ditambahkan ke TNA.")
+            ->withFragment('section-peserta');
     }
 
     public function destroyRegistration(Registration $registration)
     {
         $tna = $registration->tna;
         $userId = $registration->user_id;
+        $userName = $registration->user->name ?? 'Peserta';
 
         // SECURITY: Cuma boleh hapus peserta kalau status OPEN
         if ($tna->realization_status !== RealizationStatus::OPEN) {
-            return back()->with('error', 'Peserta tidak dapat dihapus jika pelatihan sudah berjalan/selesai.');
+            return back()->with('participant_error', 'Peserta tidak dapat dihapus jika pelatihan sudah berjalan/selesai.')
+                ->withFragment('section-peserta');
         }
 
         $this->authorize('manageParticipants', $tna);
@@ -210,7 +217,8 @@ class TnaController extends Controller
         $this->flushTnaCache($tna, $userId);
         
         return redirect()->route('admin.tnas.edit', $tna)
-            ->with('success', 'Peserta berhasil dihapus.');
+            ->with('participant_success', "Peserta '{$userName}' berhasil dihapus dari TNA.")
+            ->withFragment('section-peserta');
     }
 
     /**

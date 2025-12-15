@@ -38,6 +38,12 @@
         </div>
     @endif
     
+    @if(session('success'))
+        <div class="mb-4 p-4 rounded bg-green-100 border border-green-300 text-green-800">
+            {{ session('success') }}
+        </div>
+    @endif
+    
     {{-- REVISI: Tambahkan blok ini untuk menampilkan error validasi --}}
     @if ($errors->any())
         <div class="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
@@ -218,7 +224,28 @@
 
     {{-- BAGIAN 4: Daftar Karyawan Peserta (Selalu Tampil) --}}
     {{-- Form ini TERPISAH dari form TNA utama untuk menghindari nested forms --}}
-    <div class="bg-white p-8 rounded-xl shadow-lg mb-8" x-data="{ showParticipantForm: false }">
+    <div id="section-peserta" class="bg-white p-8 rounded-xl shadow-lg mb-8" x-data="{ showParticipantForm: false }">
+        
+        {{-- Notifikasi Sukses Penambahan Peserta --}}
+        @if(session('participant_success'))
+            <div class="mb-4 p-4 rounded bg-green-100 border border-green-300 text-green-800 flex items-center gap-3">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>{{ session('participant_success') }}</span>
+            </div>
+        @endif
+        
+        {{-- Error Penambahan Peserta --}}
+        @if(session('participant_error'))
+            <div class="mb-4 p-4 rounded bg-red-100 border border-red-300 text-red-800 flex items-center gap-3">
+                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>{{ session('participant_error') }}</span>
+            </div>
+        @endif
+
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-bold text-gray-700 text-center">Daftar Karyawan Peserta ({{ $isEdit ? $tna->registrations->count() : 0 }})</h2>
             @php
@@ -303,8 +330,7 @@
                                             @method('DELETE')
                                             <button type="submit" class="text-red-500 hover:text-red-700 mx-1 align-middle">
                                                 <img src="{{ asset('icons/Button Trash.svg') }}" class="w-8 h-8 inline" alt="Delete">
-                                            </button>
-                                        </form>
+                                            </form>
                                     @endif
                                 </td>
                             </tr>
