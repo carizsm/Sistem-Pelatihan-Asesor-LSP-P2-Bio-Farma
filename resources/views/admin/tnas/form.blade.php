@@ -38,24 +38,6 @@
         </div>
     @endif
     
-    @if(session('success'))
-        <div class="mb-4 p-4 rounded bg-green-100 border border-green-300 text-green-800">
-            {{ session('success') }}
-        </div>
-    @endif
-    
-    {{-- REVISI: Tambahkan blok ini untuk menampilkan error validasi --}}
-    @if ($errors->any())
-        <div class="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
-            <strong>Terjadi kesalahan validasi:</strong>
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-    
     <h1 class="text-3xl font-bold text-gray-800 mb-6">
         {{ $isEdit ? 'Ubah Data TNA' : 'Form TNA Baru' }}
     </h1>
@@ -201,7 +183,7 @@
 
         {{-- Tombol Aksi Utama untuk TNA Form --}}
         <div class="flex justify-center space-x-4 pb-8">
-            <a href="{{ route('admin.tnas.index') }}" class="px-6 py-2 border border-gray-400 text-gray-700 font-semibold rounded-lg shadow-sm bg-gray-300 hover:bg-gray-400 transition duration-200">
+            <a href="{{ route('admin.tnas.index') }}" class="px-6 py-2 border border-gray-500 text-white font-semibold rounded-lg shadow-sm bg-gray-500 hover:bg-gray-600 transition duration-200">
                 Kembali
             </a>
             <button type="submit" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-200">

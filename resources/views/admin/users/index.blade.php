@@ -17,13 +17,6 @@
         </a>
     </div>
 
-    {{-- Notifikasi Sukses --}}
-    @if(session('success'))
-            <div class="mb-4 p-4 rounded bg-green-100 border border-green-300 text-green-800">
-                {{ session('success') }}
-            </div>
-        @endif
-
     {{-- Tabel Daftar Asesor --}}
     <div class="bg-white rounded-xl shadow-lg overflow-hidden">
         

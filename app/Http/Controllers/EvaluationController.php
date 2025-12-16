@@ -34,7 +34,7 @@ class EvaluationController extends Controller
                 ->get();
         });
         
-        return view('peserta.evaluasi1', compact('registrations'));
+        return view('trainee.evaluation1.index', compact('registrations'));
     }
 
     public function showFeedbackForm(Registration $registration)
@@ -51,7 +51,7 @@ class EvaluationController extends Controller
         // 1. CEK DATA DULU (Review Mode)
         // Jika sudah isi -> Tampilkan Review (Abaikan Status TNA)
         if ($registration->feedbackResult) {
-            return view('peserta.feedback', [
+            return view('trainee.evaluation1.form', [
                 'registration' => $registration,
                 'tna' => $tna,
                 'feedback' => $registration->feedbackResult
@@ -64,7 +64,7 @@ class EvaluationController extends Controller
             abort(403, 'Evaluasi penyelenggaraan hanya dapat diisi setelah pelatihan dinyatakan selesai.');
         }
 
-        return view('peserta.feedback', compact('registration', 'tna'));
+        return view('trainee.evaluation1.form', compact('registration', 'tna'));
     }
 
     public function storeFeedback(Request $request, Registration $registration)
@@ -154,7 +154,7 @@ class EvaluationController extends Controller
         $tna = $registration->tna;
         $feedback = $registration->feedbackResult;
 
-        return view('peserta.feedback', compact('registration', 'tna', 'feedback'));
+        return view('trainee.evaluation1.form', compact('registration', 'tna', 'feedback'));
     }
 
     // ==========================================
@@ -172,7 +172,7 @@ class EvaluationController extends Controller
                 ->get();
         });
         
-        return view('peserta.evaluasi2', compact('registrations'));
+        return view('trainee.evaluation2.index', compact('registrations'));
     }
 
     public function showQuizForm(Registration $registration, string $type)
@@ -203,7 +203,7 @@ class EvaluationController extends Controller
         // 1. CEK DATA DULU (Review Mode)
         // Jika sudah ada attempt -> Masuk Review (Abaikan Status TNA)
         if ($attempt) {
-            return view('peserta.quiz', compact('registration', 'tna', 'questions', 'type', 'attempt'));
+            return view('trainee.evaluation2.form', compact('registration', 'tna', 'questions', 'type', 'attempt'));
         }
 
         // 2. BARU CEK STATUS (Input Mode)
@@ -230,7 +230,7 @@ class EvaluationController extends Controller
                 ->with('error', "Soal {$typeName} untuk pelatihan '{$tna->name}' belum tersedia. Silakan hubungi administrator.");
         }
 
-        return view('peserta.quiz', compact('registration', 'tna', 'questions', 'type'));
+        return view('trainee.evaluation2.form', compact('registration', 'tna', 'questions', 'type'));
     }
 
     public function storeQuiz(Request $request, Registration $registration, string $type)
@@ -361,6 +361,6 @@ class EvaluationController extends Controller
             ->orderBy('question_number')
             ->get();
 
-        return view('peserta.quiz', compact('registration', 'tna', 'questions', 'type', 'attempt'));
+        return view('trainee.evaluation2.form', compact('registration', 'tna', 'questions', 'type', 'attempt'));
     }
 }

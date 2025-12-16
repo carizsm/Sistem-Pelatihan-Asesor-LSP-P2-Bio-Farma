@@ -115,23 +115,6 @@
             <p class="text-sm text-gray-600 mb-4">Presensi Peserta</p> 
         </div>
 
-        {{-- Flash messages --}}
-        @if(session('success'))
-            <div class="mb-4 px-4 py-3 bg-green-100 text-green-700 rounded-lg">
-                {{ session('success') }}
-            </div>
-        @endif
-        @if(session('error'))
-            <div class="mb-4 px-4 py-3 bg-red-100 text-red-700 rounded-lg">
-                {{ session('error') }}
-            </div>
-        @endif
-        @if(session('info'))
-            <div class="mb-4 px-4 py-3 bg-blue-100 text-blue-700 rounded-lg">
-                {{ session('info') }}
-            </div>
-        @endif
-
         {{-- Tabel --}}
         <div class="overflow-x-auto">
             <table class="w-full bg-white rounded-lg shadow-sm">
@@ -298,6 +281,8 @@
             </table>
         </div>
     </main>
+
+    @include('components.toast-notification')
 
     <script src="https://unpkg.com/alpinejs" defer></script>
     <script>

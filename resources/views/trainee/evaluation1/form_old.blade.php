@@ -213,7 +213,7 @@
                         <div class="mt-4 w-full flex justify-end items-center"> 
                             @if(!isset($feedback))
                                 <button type="submit" form="feedback-form"
-                                    class="inline-flex items-center justify-center bg-[#F26E22] text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-[#d65c1c] min-w-[120px] transition whitespace-nowrap leading-none">
+                                    class="inline-flex items-center justify-center bg-gray-500 text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-gray-600 min-w-[120px] transition whitespace-nowrap leading-none">
                                     Selesai
                                 </button>
                             @else
@@ -318,5 +318,7 @@
             @endif
         });
     </script>
+
+    @include('components.toast-notification')
 </body>
 </html>

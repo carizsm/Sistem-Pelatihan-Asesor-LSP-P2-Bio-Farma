@@ -11,27 +11,6 @@
         $hasQuestions = $questionCount > 0;
     @endphp
 
-    {{-- Notifikasi --}}
-    @if(session('success'))
-        <div class="max-w-3xl mx-auto mb-4 p-4 rounded bg-green-100 border border-green-300 text-green-800">
-            {{ session('success') }}
-        </div>
-    @endif
-    @if(session('error'))
-        <div class="max-w-3xl mx-auto mb-4 p-4 rounded bg-red-100 border border-red-300 text-red-800">
-            {{ session('error') }}
-        </div>
-    @endif
-    @if ($errors->any())
-        <div class="max-w-3xl mx-auto mb-4 p-4 rounded bg-red-100 border border-red-300 text-red-800">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
     {{-- Warning Expired --}}
     @if($isExpired)
         <div class="max-w-3xl mx-auto mb-6 p-4 rounded bg-yellow-100 border border-yellow-300 text-yellow-800 flex items-center gap-3">
@@ -79,7 +58,7 @@
 
             {{-- Area Tombol Bawah --}}
             <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mt-10">
-                <a href="{{ route('admin.quiz_questions.index') }}" class="w-full sm:w-auto px-8 py-3 text-lg text-center border border-gray-400 text-gray-700 font-semibold rounded-lg shadow-sm bg-gray-400 hover:bg-gray-500 transition duration-200">
+                <a href="{{ route('admin.quiz_questions.index') }}" class="w-full sm:w-auto px-8 py-3 text-lg text-center border border-gray-500 text-white font-semibold rounded-lg shadow-sm bg-gray-500 hover:bg-gray-600 transition duration-200">
                     Kembali
                 </a>
 

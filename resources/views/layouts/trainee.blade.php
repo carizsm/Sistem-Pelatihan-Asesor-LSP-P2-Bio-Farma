@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Evaluasi 1')</title>
+    <title>@yield('title', 'Dashboard Peserta') - LSP Farmasi</title>
     @vite('resources/css/app.css')
 </head>
 <body class="bg-[#EEE8E5] font-sans text-gray-800 min-h-screen">
@@ -30,7 +30,6 @@
 
             {{-- Menu Sidebar --}}
             <nav class="flex flex-col gap-2 mt-4">
-                <!-- Dashboard -->
                 <li>
                     <a href="{{ route('dashboard') }}"
                        class="flex items-center gap-3 px-4 py-2 rounded-lg mx-2 my-1 transition 
@@ -40,7 +39,6 @@
                     </a>
                 </li>
 
-                <!-- Presensi -->
                 <li>
                     <a href="{{ route('peserta.presensi') }}"
                        class="flex items-center gap-3 px-4 py-2 rounded-lg mx-2 my-1 transition 
@@ -50,21 +48,19 @@
                     </a>
                 </li>
 
-                <!-- Evaluasi 1 -->
                 <li>
                     <a href="{{ route('peserta.evaluasi1') }}"
                        class="flex items-center gap-3 px-4 py-2 rounded-lg mx-2 my-1 transition 
-                              {{ request()->routeIs('peserta.evaluasi1') ? 'bg-[#F4E5DD] text-[#F26E22] font-semibold' : 'hover:bg-gray-200' }}">
+                              {{ request()->routeIs('peserta.evaluasi1') || request()->routeIs('evaluasi1.form') || request()->routeIs('evaluasi1.review') ? 'bg-[#F4E5DD] text-[#F26E22] font-semibold' : 'hover:bg-gray-200' }}">
                         <img src="{{ asset('icons/Evaluasi 1.svg') }}" class="w-7 h-7 shrink-0" alt="Evaluasi 1">
                         <span x-show="$store.sidebar.open">Evaluasi 1</span>
                     </a>
                 </li>
 
-                <!-- Evaluasi 2 -->
                 <li>
                     <a href="{{ route('peserta.evaluasi2') }}"
                        class="flex items-center gap-3 px-4 py-2 rounded-lg mx-2 my-1 transition 
-                              {{ request()->routeIs('peserta.evaluasi2') ? 'bg-[#F4E5DD] text-[#F26E22] font-semibold' : 'hover:bg-gray-200' }}">
+                              {{ request()->routeIs('peserta.evaluasi2') || request()->routeIs('evaluasi2.quiz.form') || request()->routeIs('evaluasi2.review') ? 'bg-[#F4E5DD] text-[#F26E22] font-semibold' : 'hover:bg-gray-200' }}">
                         <img src="{{ asset('icons/Evaluasi 2.svg') }}" class="w-7 h-7 shrink-0" alt="Evaluasi 2">
                         <span x-show="$store.sidebar.open">Evaluasi 2</span>
                     </a>
@@ -72,9 +68,8 @@
             </nav>
         </div>
 
-        {{-- Profil + Logout (Bagian bawah sidebar) --}}
+        {{-- Profil + Logout --}}
         <div class="flex items-center justify-between p-4 border-t border-gray-300 hover:bg-gray-100 transition">
-            {{-- Profil --}}
             <div class="flex items-center gap-3">
                 <img src="{{ asset('icons/Avatar.svg') }}" class="w-9 h-9 shrink-0 bg-[#D9E7E9] rounded-lg" alt="User">
                 <div x-show="$store.sidebar.open">
@@ -83,7 +78,6 @@
                 </div>
             </div>
 
-            {{-- Tombol Logout --}}
             <form method="POST" action="{{ route('logout') }}" x-show="$store.sidebar.open">
                 @csrf
                 <button type="submit" 
@@ -101,68 +95,21 @@
         :class="$store.sidebar.open ? 'ml-64' : 'ml-20'"
         class="flex-1 px-6 pb-6 pt-2 transition-all duration-300"
     >
-
         {{-- Navbar Atas --}}
         <div class="flex items-center justify-center bg-[#F3F3F3] rounded-xl p-2 shadow-sm mb-3 px-6"> 
             <h1 class="font-semibold text-lg"> 
-                @yield('header', 'Evaluasi 1') 
+                @yield('page_title', 'Dashboard Peserta') 
             </h1> 
         </div>
-        {{-- Isi Konten --}}
-        <div class="mt-3"> 
-            <h2 class="text-xl font-semibold mb-4">Daftar Evaluasi 1</h2> 
-            <p class="text-sm text-gray-600 mb-4">Daftar feedback yang tersedia</p>
-            
-            {{-- Card tugas placeholder --}} 
-            <div class="bg-[#F3F3F3] rounded-xl shadow-sm p-6 space-y-4"> 
-                @forelse($registrations as $registration)
-                    @php
-                        $tna = $registration->tna;
-                        $hasFeedback = $registration->feedbackResult;
-                        
-                        // PRODUCTION: Hanya bisa akses setelah end_date
-                        $canAccess = $tna->realization_status === App\Enums\RealizationStatus::COMPLETED;
-                        
-                        // TESTING: Uncomment baris di bawah untuk testing (bisa akses kapan saja)
-                        // $canAccess = true;
-                    @endphp
 
-                    <div class="card-content bg-white rounded-lg shadow-sm px-5 py-3 flex justify-between items-center border border-gray-200">
-                        <div class="flex items-center gap-3">
-                            <div class="flex items-center justify-center w-10 h-10 bg-[#E6F4F1] rounded-md shrink-0">
-                                <img src="{{ asset('icons/Evaluasi 1.svg') }}" class="w-10 h-10" alt="Evaluasi 1">
-                            </div>
-                            <div class="card-text flex flex-col justify-center">
-                                <p class="text-sm text-gray-500 leading-none">Evaluasi 1</p>
-                                <h3 class="font-semibold text-gray-900 text-base leading-tight mt-1">{{ $tna->name }}</h3>
-                                <p class="text-xs text-gray-400 mt-1">Periode: {{ \Carbon\Carbon::parse($tna->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($tna->end_date)->format('d M Y') }}</p>
-                            </div>
-                        </div>
-
-                        @if($hasFeedback)
-                            <a href="{{ route('evaluasi1.review', $registration) }}" 
-                               class="px-4 py-2 bg-[#17A2B8] text-white text-sm font-semibold rounded-md hover:bg-[#138496] transition-all duration-200 whitespace-nowrap min-w-[120px] text-center leading-none">
-                                Review
-                            </a>
-                        @elseif(!$canAccess)
-                            <span class="px-4 py-2 bg-gray-100 text-gray-500 text-sm font-semibold rounded-md whitespace-nowrap min-w-[120px] text-center leading-none">
-                                Kerjakan
-                            </span>
-                        @else
-                            <a href="{{ route('evaluasi1.form', $registration) }}" 
-                               class="px-4 py-2 bg-[#F26E22] hover:bg-[#d65c1c] text-white text-sm font-semibold rounded-md transition whitespace-nowrap min-w-[120px] text-center leading-none">
-                               Kerjakan
-                            </a>
-                        @endif
-                    </div>
-                @empty
-                    <p class="text-gray-500 text-center py-4">Tidak ada evaluasi yang tersedia.</p>
-                @endforelse
-            </div>
+        {{-- Area Konten Utama --}}
+        <div class="mt-3">
+            @yield('content')
         </div>
-
-        @yield('content')
     </main>
+
+    {{-- Toast Notification Component --}}
+    @include('components.toast-notification')
 
     <script src="https://unpkg.com/alpinejs" defer></script>
     <script>
@@ -175,5 +122,7 @@
             });
         });
     </script>
+
+    @stack('scripts')
 </body>
 </html>

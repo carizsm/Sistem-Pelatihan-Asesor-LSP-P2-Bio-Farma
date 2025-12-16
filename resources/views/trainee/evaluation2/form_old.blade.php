@@ -118,7 +118,7 @@
                 <div class="w-32 flex justify-end"> 
                     @if(!isset($attempt))
                         <button type="button" @click="submitQuiz()"
-                            class="bg-[#F26E22] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#d65c1c] transition whitespace-nowrap">
+                            class="bg-gray-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-600 transition whitespace-nowrap">
                             Selesai
                         </button>
                     @else
@@ -642,5 +642,7 @@
             display: none !important; 
         }
     </style>
+
+    @include('components.toast-notification')
 </body>
 </html>

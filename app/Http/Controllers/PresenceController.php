@@ -47,7 +47,7 @@ class PresenceController extends Controller
                 return -$now->diffInDays($end);
             });
         
-        return view('peserta.presensi', compact('registrations'));
+        return view('trainee.presence.index', compact('registrations'));
     }
 
     public function store(Request $request)

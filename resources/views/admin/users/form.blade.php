@@ -14,17 +14,6 @@
             <h2 class="text-2xl font-bold text-gray-700 mb-6 text-center">
                 {{ $isEdit ? 'Ubah Data User (Asesor)' : 'Tambah Data User (Asesor)' }}
             </h2>
-            
-            {{-- Menampilkan error validasi jika ada --}}
-            @if ($errors->any())
-                <div class="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
 
             <form action="{{ $isEdit ? route('admin.users.update', $user->id) : route('admin.users.store') }}" method="POST">
                 @csrf 
@@ -119,7 +108,7 @@
 
                 {{-- Tombol Aksi --}}
                 <div class="flex justify-center space-x-4">
-                    <a href="{{ route('admin.users.index') }}" class="px-6 py-2 border border-gray-400 text-gray-700 font-semibold rounded-lg shadow-sm bg-gray-300 hover:bg-gray-400 transition duration-200">
+                    <a href="{{ route('admin.users.index') }}" class="px-6 py-2 border border-gray-500 text-white font-semibold rounded-lg shadow-sm bg-gray-500 hover:bg-gray-600 transition duration-200">
                         Kembali
                     </a>
                     

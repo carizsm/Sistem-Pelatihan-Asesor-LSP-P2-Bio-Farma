@@ -56,7 +56,7 @@
         
         {{-- Tombol Kembali --}}
         <div class="flex justify-center mt-8">
-            <a href="{{ route('admin.feedback_results.index') }}" class="px-8 py-3 text-lg border border-gray-400 text-gray-700 font-semibold rounded-lg shadow-sm bg-gray-400 hover:bg-gray-500 transition duration-200">
+            <a href="{{ route('admin.feedback_results.index') }}" class="px-8 py-3 text-lg border border-gray-500 text-white font-semibold rounded-lg shadow-sm bg-gray-500 hover:bg-gray-600 transition duration-200">
                 Kembali
             </a>
         </div>
