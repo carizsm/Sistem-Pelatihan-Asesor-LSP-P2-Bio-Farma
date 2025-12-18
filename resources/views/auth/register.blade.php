@@ -216,7 +216,7 @@
           </div>
         @enderror
 
-        <div style="margin-top: 15px; width: 100%;">
+        <div style="margin-top: 5px; width: 100%; text-align: left;">
           <label for="password_confirmation"><b>Konfirmasi Password</b></label>
           <input type="password" id="password_confirmation" name="password_confirmation" 
                  placeholder="Ulangi Password" required autocomplete="new-password" />

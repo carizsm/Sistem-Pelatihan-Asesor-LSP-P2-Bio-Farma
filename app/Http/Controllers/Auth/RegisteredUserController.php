@@ -42,7 +42,7 @@ class RegisteredUserController extends Controller
             'password' => ['required', Password::defaults(), 'confirmed'],
             // 'position' => 'required|string|max:255',
             // 'unit' => 'required|string|max:255',
-            'role' => UserRole::TRAINEE,
+            'role' => 'trainee',
         ], [
             'required' => ':attribute wajib diisi.',
             'numeric' => ':attribute harus berupa angka.',
@@ -66,7 +66,7 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
             'position' => $request->position,
             'unit' => $request->unit,
-            'role' => UserRole::TRAINEE, 
+            'role' => 'trainee', 
         ]);
 
         event(new Registered($user));

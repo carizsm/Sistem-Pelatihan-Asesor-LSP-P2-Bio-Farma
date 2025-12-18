@@ -28,11 +28,11 @@
             </div>
             <div class="flex">
                 <span class="w-32 font-semibold text-gray-700">Jabatan</span>
-                <span class="font-bold text-gray-900">: {{ Auth::user()->position->position_name ?? '-' }}</span>
+                <span class="font-bold text-gray-900">: {{ Auth::user()->position ?? '-' }}</span>
             </div>
             <div class="flex">
                 <span class="w-32 font-semibold text-gray-700">Unit Kerja</span>
-                <span class="font-bold text-gray-900">: {{ Auth::user()->unit->unit_name ?? '-' }}</span>
+                <span class="font-bold text-gray-900">: {{ Auth::user()->unit ?? '-' }}</span>
             </div>
         </div>
     </div>

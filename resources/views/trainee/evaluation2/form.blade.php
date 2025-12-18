@@ -131,7 +131,7 @@
                                         <button type="button" 
                                                 @click="prevPage()" 
                                                 x-show="currentPage > 0"
-                                                class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold">
+                                                class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold min-w-[160px]">
                                             ← Sebelumnya
                                         </button>
                                         <div x-show="currentPage === 0" class="w-24"></div>
@@ -139,13 +139,13 @@
                                         <button type="button" 
                                                 @click="nextPage()" 
                                                 x-show="currentPage < totalPages - 1"
-                                                class="px-6 py-2 bg-[#F26E22] text-white rounded-lg hover:bg-[#d65c1c] transition font-semibold">
+                                                class="px-6 py-2 bg-[#F26E22] text-white rounded-lg hover:bg-[#d65c1c] transition font-semibold min-w-[160px]">
                                             Selanjutnya →
                                         </button>
                                         <button type="button" 
                                                 @click="submitQuiz()" 
                                                 x-show="currentPage === totalPages - 1"
-                                                class="px-6 py-2 bg-[#F26E22] text-white rounded-lg hover:bg-[#d65c1c] transition font-semibold">
+                                                class="px-6 py-2 bg-[#F26E22] text-white rounded-lg hover:bg-[#d65c1c] transition font-semibold min-w-[160px]">
                                             Selesai
                                         </button>
                                     </div>

@@ -30,10 +30,6 @@ class UserController extends Controller
                     'unit',
                     'role'
                 )
-                ->with([
-                    'position:id,position_name',
-                    'unit:id,unit_name'
-                ])
                 ->paginate(10);
         });
         

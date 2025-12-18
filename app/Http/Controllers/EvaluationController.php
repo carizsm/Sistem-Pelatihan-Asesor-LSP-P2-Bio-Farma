@@ -188,7 +188,7 @@ class EvaluationController extends Controller
 
         if ($type === 'pre-test') {
             $registration->load('presence');
-            if (!$registration->presence || !$registration->presence->check_in) {
+            if (!$registration->presence || !$registration->presence->clock_in) {
                 return redirect()->route('dashboard')
                     ->with('error', 'Anda wajib melakukan Presensi Masuk (Clock-In) terlebih dahulu sebelum mengerjakan Pre-Test.');
             }
@@ -242,7 +242,7 @@ class EvaluationController extends Controller
 
         if ($type === 'pre-test') {
             $registration->load('presence');
-            if (!$registration->presence || !$registration->presence->check_in) {
+            if (!$registration->presence || !$registration->presence->clock_in) {
                  return redirect()->route('dashboard')->with('error', 'Gagal menyimpan: Anda belum melakukan Clock-In.');
             }
         }

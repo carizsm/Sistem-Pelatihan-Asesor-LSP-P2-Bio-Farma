@@ -5,9 +5,6 @@
 @section('content')
     {{-- Navbar Atas --}}
     <div class="flex items-center bg-[#F3F3F3] rounded-xl p-2 shadow-sm mb-3">
-        {{-- Spacer kiri untuk balance --}}
-        <div class="w-32"></div>
-
         {{-- Title di tengah --}}
         <div class="flex-1 text-center">
             <h1 class="font-semibold text-lg">

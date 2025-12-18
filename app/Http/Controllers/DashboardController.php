@@ -38,7 +38,7 @@ class DashboardController extends Controller {
         $hasFeedback = $registration->feedbackResult;
         $hasPreTest = $registration->quizAttempts->where('type', 'pre-test')->isNotEmpty();
         $hasPostTest = $registration->quizAttempts->where('type', 'post-test')->isNotEmpty();
-        $hasCheckIn = $registration->presence && $registration->presence->check_in;
+        $hasCheckIn = $registration->presence && $registration->presence->clock_in;
 
         if (!$hasPreTest && 
             in_array($tna->realization_status, [RealizationStatus::OPEN, RealizationStatus::RUNNING]) && 

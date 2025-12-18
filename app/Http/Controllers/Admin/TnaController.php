@@ -75,9 +75,7 @@ class TnaController extends Controller
     }
 
     public function edit(Tna $tna)
-    {
-        $tna->load('registrations.user.unit', 'registrations.user.position');
-        
+    {   
         $registeredUserIds = $tna->registrations->pluck('user_id')->toArray();
         
         $availableUsers = User::where('role', 'trainee')

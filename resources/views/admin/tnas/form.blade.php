@@ -84,7 +84,7 @@
                 <div>
                     <label for="unit_pembuat" class="block text-sm font-medium text-gray-700 mb-1">Unit Pembuat</label>
                     <input type="text" class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-500" 
-                           value="{{ $isEdit ? ($tna->user->unit->unit_name ?? Auth::user()->unit->unit_name) : (Auth::user()->unit->unit_name ?? 'N/A') }}" readonly>
+                           value="{{ $isEdit ? ($tna->user->unit ?? Auth::user()->unit) : (Auth::user()->unit ?? 'N/A') }}" readonly>
                     @error('unit_pembuat')
                         <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
                     @enderror
@@ -354,7 +354,7 @@
                                 {{ $registration->user->nik ?? 'N/A' }}
                             </td>
                             <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
-                                {{ $registration->user->unit->unit_name ?? 'N/A' }}
+                                {{ $registration->user->unit ?? 'N/A' }}
                             </td>
                             <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
                                 @if($isStatusOpen)
