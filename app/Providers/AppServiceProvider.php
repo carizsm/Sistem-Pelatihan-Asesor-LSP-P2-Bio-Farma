@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
-use App\Extensions\CachedEloquentUserProvider;
+use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -34,5 +34,13 @@ class AppServiceProvider extends ServiceProvider
                 ]);
             }
         });
+
+        Password::defaults(function () {
+        return Password::min(8)
+            ->mixedCase()
+            ->numbers()
+            ->symbols()
+            ->uncompromised();
+    });
     }
 }

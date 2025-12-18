@@ -15,7 +15,7 @@
                     <h1 class="font-bold text-xl text-gray-800">
                         {{ ucfirst(str_replace('-', ' ', $type)) }} - {{ $tna->name }}
                         @if(isset($attempt))
-                            <span class="text-sm text-green-600 font-normal">(Review)</span>
+                            <span class="text-lg text-green-600 font-semibold">(Review)</span>
                         @endif
                     </h1>
                     <p class="text-sm text-gray-600 mt-1">
@@ -29,12 +29,7 @@
 
                 {{-- Button kanan --}}
                 <div class="w-32 flex justify-end"> 
-                    @if(!isset($attempt))
-                        <button type="button" @click="submitQuiz()"
-                            class="bg-gray-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-600 transition whitespace-nowrap">
-                            Selesai
-                        </button>
-                    @else
+                    @if(isset($attempt))
                         <a href="{{ route('peserta.evaluasi2') }}"
                            class="inline-flex items-center justify-center bg-gray-500 text-white text-sm px-4 h-9 rounded-lg font-semibold hover:bg-gray-600 transition whitespace-nowrap leading-none">
                             Kembali
@@ -147,7 +142,12 @@
                                                 class="px-6 py-2 bg-[#F26E22] text-white rounded-lg hover:bg-[#d65c1c] transition font-semibold">
                                             Selanjutnya →
                                         </button>
-                                        <div x-show="currentPage === totalPages - 1" class="w-24"></div>
+                                        <button type="button" 
+                                                @click="submitQuiz()" 
+                                                x-show="currentPage === totalPages - 1"
+                                                class="px-6 py-2 bg-[#F26E22] text-white rounded-lg hover:bg-[#d65c1c] transition font-semibold">
+                                            Selesai
+                                        </button>
                                     </div>
                                 </div>
                             @endforeach

@@ -19,7 +19,7 @@ class QuizAttemptFactory extends Factory
     {
         return [
             'type' => QuizAttemptType::PRE_TEST,
-            'score' => $this->faker->numberBetween(0, 100),
+            'score' => $this->faker->numberBetween(0, 10) * 10,
 
             'registration_id' => null,
         ];

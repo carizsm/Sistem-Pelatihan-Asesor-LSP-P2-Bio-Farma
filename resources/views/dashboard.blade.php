@@ -68,7 +68,7 @@
                             </div>
                         </div>
                         <a href="{{ route('evaluasi2.quiz.form', [$registration, 'pre-test']) }}" 
-                           class="card-button bg-[#F26E22] hover:bg-[#d65c1c] text-white text-sm font-semibold px-4 py-2 rounded-md transition shrink-0">
+                           class="card-button bg-[#F26E22] hover:bg-[#d65c1c] text-white text-center text-sm font-semibold min-w-[120px] px-4 py-2 rounded-md transition shrink-0">
                            Kerjakan
                         </a>
                     </div>

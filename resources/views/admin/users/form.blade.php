@@ -28,15 +28,26 @@
                            value="{{ old('name', $user->name ?? '') }}" 
                            class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500"
                            required>
+                    @error('name')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 {{-- REVISI: Label "NIK Asesor", tapi name="nik" (sesuai Controller) --}}
                 <div class="mb-4">
-                    <label for="nik" class="block text-sm font-medium text-gray-700 mb-1">NIK Asesor</label>
-                    <input type="text" name="nik" id="nik" 
-                           value="{{ old('nik', $user->nik ?? '') }}" 
-                           class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500"
-                           required>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">NIK</label>
+                    <input type="text" 
+                        name="nik" 
+                        value="{{ old('nik', $user->nik ?? '') }}"
+                        maxlength="10" 
+                        minlength="10"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline @error('nik') border-red-500 @enderror"
+                        oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
+                        placeholder="Masukkan 10 digit angka"
+                        required>
+                    @error('nik')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 {{-- REVISI: Field Email (WAJIB ADA, sesuai Controller) --}}
@@ -46,6 +57,9 @@
                            value="{{ old('email', $user->email ?? '') }}" 
                            class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500"
                            required>
+                    @error('email')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 {{-- REVISI: Dropdown Jabatan (name="position_id") (sesuai Controller) --}}
@@ -61,6 +75,9 @@
                             </option>
                         @endforeach
                     </select>
+                    @error('position_id')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 {{-- REVISI: Dropdown Unit Kerja (name="unit_id") (sesuai Controller) --}}
@@ -76,6 +93,9 @@
                             </option>
                         @endforeach
                     </select>
+                    @error('unit_id')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 {{-- REVISI: Mengganti Checkbox "Pembuat Asesor" dengan Dropdown "Role" (WAJIB ADA, sesuai Controller) --}}
@@ -83,9 +103,12 @@
                     <label for="role" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
                     <select name="role" id="role" 
                             class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500 appearance-none" required>
-                        <option value="trainee" {{ old('role', $isEdit ? $user->role : '') == 'trainee' ? 'selected' : '' }}>Trainee (Peserta)</option>
-                        <option value="admin" {{ old('role', $isEdit ? $user->role : '') == 'admin' ? 'selected' : '' }}>Admin (Asesor)</option>
+                        <option value="trainee" {{ old('role', $isEdit ? $user->role : '') == 'trainee' ? 'selected' : '' }}>Trainee (Asesor)</option>
+                        <option value="admin" {{ old('role', $isEdit ? $user->role : '') == 'admin' ? 'selected' : '' }}>Admin</option>
                     </select>
+                    @error('role')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 {{-- REVISI: Field Password (WAJIB ADA, sesuai Controller) --}}
@@ -97,6 +120,9 @@
                     @if($isEdit)
                         <small class="text-gray-500">Kosongkan jika tidak ingin mengubah password.</small>
                     @endif
+                    @error('password')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div class="mb-6">
@@ -104,6 +130,9 @@
                     <input type="password" name="password_confirmation" id="password_confirmation" 
                            class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500"
                            {{ !$isEdit ? 'required' : '' }}>
+                    @error('password_confirmation')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 {{-- Tombol Aksi --}}

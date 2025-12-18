@@ -58,7 +58,6 @@ class TnaController extends Controller
         
         $tna = Tna::create($data);
         
-        // Bersih-bersih (Hanya level global karena TNA baru belum punya peserta)
         $this->flushTnaCache($tna);
         
         return redirect()->route('admin.tnas.index')

@@ -23,16 +23,16 @@ class UserController extends Controller
         
         $users = Cache::remember('admin_users_list_page_' . $page, 60, function () {
             return User::select(
-                    'id',           // Required for route binding (edit/delete)
-                    'nik',          // Displayed in table
-                    'name',         // Displayed in table
-                    'position_id',  // Foreign key for position relationship
-                    'unit_id',      // Foreign key for unit relationship
-                    'role'          // Required for Role badge logic if needed
+                    'id',
+                    'nik',
+                    'name',
+                    'position_id',
+                    'unit_id',
+                    'role'
                 )
                 ->with([
-                    'position:id,position_name',  // Only fetch id and position_name
-                    'unit:id,unit_name'           // Only fetch id and unit_name
+                    'position:id,position_name',
+                    'unit:id,unit_name'
                 ])
                 ->paginate(10);
         });
@@ -51,21 +51,32 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'nik' => 'required|string|size:10|unique:users,nik',
-            'email' => 'required|email|unique:users,email',
+            'nik' => 'required|numeric|digits:10|unique:users,nik',
+            'email' => 'required|email:dns|unique:users,email',    
             'password' => 'required|string|min:8|confirmed',
             'role' => ['required', Rule::in(['admin', 'trainee'])],
             'position_id' => 'required|exists:positions,id',
             'unit_id' => 'required|exists:units,id',
+        ], [
+            'required' => ':attribute wajib diisi.',
+            'numeric' => ':attribute harus berupa angka.',
+            'digits' => ':attribute harus berjumlah tepat :digits digit.',
+            'unique' => ':attribute sudah terdaftar, gunakan yang lain.',
+            'min' => ':attribute minimal harus :min karakter.',
+            'confirmed' => 'Konfirmasi password tidak cocok.',
+            'email' => 'Format email tidak valid.',
+            'in' => 'Pilihan :attribute tidak valid.',
+        ], [
+            'nik' => 'NIK',
+            'password' => 'Kata Sandi',
+            'role' => 'Peran Pengguna'
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
         
-        // Simpan user ke variabel agar bisa dipassing ke helper cache
         $user = User::create($validated);
         
-        // Bersih-bersih Cache
-        $this->flushUserCache($user);
+        $this->flushUserCache($user); 
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User berhasil ditambahkan.');
@@ -80,29 +91,28 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
-        $validated = $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
-            'nik' => ['required', 'string', 'size:10', Rule::unique('users')->ignore($user->id)],
-            'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
-            'password' => 'nullable|string|min:8|confirmed',
-            'role' => ['required', Rule::in(['admin', 'trainee'])],
-            'position_id' => 'required|exists:positions,id',
-            'unit_id' => 'required|exists:units,id',
-        ]);
+            'email' => 'required|email:dns|unique:users,email,' . $user->id,
+            'nik' => 'required|numeric|digits:10|unique:users,nik,' . $user->id,
+            'role' => 'required',
+        ];
 
-        if (!empty($validated['password'])) {
-            $validated['password'] = Hash::make($validated['password']);
+        if ($request->filled('password')) {
+            $rules['password'] = 'min:8'; // Kalau diisi, validasi min 8 char
+        }
+
+        $validated = $request->validate($rules);
+
+        if ($request->filled('password')) {
+            $validated['password'] = bcrypt($request->password);
         } else {
             unset($validated['password']);
         }
 
         $user->update($validated);
-        
-        // Bersih-bersih Cache
-        $this->flushUserCache($user);
 
-        return redirect()->route('admin.users.index')
-            ->with('success', 'User berhasil diperbarui.');
+        return redirect()->route('admin.users.index')->with('success', 'Data User berhasil diperbarui.');
     }
 
     public function destroy(User $user)

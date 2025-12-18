@@ -5,13 +5,12 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Enums\UserRole;
-
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Log;
 
@@ -34,16 +33,25 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        Log::info('REGISTER REQUEST:', $request->all()); //LOGGING ONLY
+        Log::info('REGISTER REQUEST:', $request->all());
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'name' => ['required', 'string', 'max:20'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', Rules\Password::defaults()],
-            // 'position_id' => ['required', 'integer'],
-            // 'unit_id' => ['required', 'integer'],
+            'nik' => ['required', 'numeric', 'digits:10', 'unique:'.User::class],
+            'password' => ['required', Password::defaults()],
             'role' => 'user',
+        ], [
+            'required' => ':attribute wajib diisi.',
+            'numeric' => ':attribute harus berupa angka.',
+            'digits' => ':attribute harus berjumlah tepat :digits digit.',
+            'unique' => ':attribute sudah terdaftar.',
+            'email' => 'Format email tidak valid.',
+            'confirmed' => 'Konfirmasi kata sandi tidak cocok.',
+            'min' => ':attribute minimal :min karakter.',
+        ], [
+            'nik' => 'NIK',
+            'password' => 'Kata Sandi'
         ]);
 
         $user = User::create([

@@ -1,8 +1,14 @@
-{{-- Toast Notification Component --}}
 <div x-data="toastManager()" 
-     x-init="@if(session('success')) showToast('{{ session('success') }}', 'success') @endif
-            @if(session('error')) showToast('{{ session('error') }}', 'error') @endif
-            @if(session('info')) showToast('{{ session('info') }}', 'info') @endif"
+     x-init="
+        @if(session('success')) showToast('{{ session('success') }}', 'success'); @endif
+        @if(session('error')) showToast('{{ session('error') }}', 'error'); @endif
+        @if(session('info')) showToast('{{ session('info') }}', 'info'); @endif
+        @if($errors->any())
+            @foreach($errors->all() as $error)
+                showToast('{{ $error }}', 'error');
+            @endforeach
+        @endif
+     "
      class="fixed top-4 right-4 z-50 space-y-2">
     <template x-for="toast in toasts" :key="toast.id">
         <div x-show="toast.show"

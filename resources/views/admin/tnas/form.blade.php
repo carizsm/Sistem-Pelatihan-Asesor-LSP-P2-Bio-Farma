@@ -86,7 +86,7 @@
                     <label for="period" class="block text-sm font-medium text-gray-700 mb-1">Periode</label>
                     {{-- REVISI: name="periode" -> name="period" --}}
                     <input type="text" id="period" name="period" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" 
-                           value="{{ old('period', $tna->period ?? date('Y')) }}" placeholder="Contoh: 2025" required @disabled($isReadOnly)>
+                           value="{{ old('period', $tna->period ?? date('Y')) }}" placeholder="Contoh: 2025" readonly>
                 </div>
                 
                 <div class="col-span-2">
