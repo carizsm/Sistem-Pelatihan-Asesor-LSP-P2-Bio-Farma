@@ -38,19 +38,24 @@ class RegisteredUserController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'nik' => ['required', 'numeric', 'digits:10', 'unique:'.User::class],
-            'password' => ['required', Password::defaults()],
-            'role' => 'user',
+            'nik' => ['required', 'numeric', 'digits:8', 'unique:'.User::class],
+            'password' => ['required', Password::defaults(), 'confirmed'],
+            // 'position' => 'required|string|max:255',
+            // 'unit' => 'required|string|max:255',
+            'role' => UserRole::TRAINEE,
         ], [
             'required' => ':attribute wajib diisi.',
             'numeric' => ':attribute harus berupa angka.',
             'digits' => ':attribute harus berjumlah tepat :digits digit.',
             'unique' => ':attribute sudah terdaftar.',
             'email' => 'Format email tidak valid.',
-            'confirmed' => 'Konfirmasi kata sandi tidak cocok.',
+            'confirmed' => 'Konfirmasi :attribute tidak cocok.',
             'min' => ':attribute minimal :min karakter.',
+            'password.mixed' => 'Kata Sandi harus menggabungkan huruf besar dan kecil.',
+            'password.numbers' => 'Kata Sandi wajib mengandung angka.',
+            'password.symbols' => 'Kata Sandi wajib mengandung simbol/tanda baca.',
         ], [
-            'nik' => 'NIK',
+            'nik' => 'NPK',
             'password' => 'Kata Sandi'
         ]);
 
@@ -59,8 +64,8 @@ class RegisteredUserController extends Controller
             'nik' => $request->nik,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            // 'position_id' => $request->position_id,
-            // 'unit_id' => $request->unit_id,
+            'position' => $request->position,
+            'unit' => $request->unit,
             'role' => UserRole::TRAINEE, 
         ]);
 

@@ -63,12 +63,12 @@ class PresenceController extends Controller
         $registration->load('tna');
         $tna = $registration->tna;
         
-        // Time Check: Must be within 30 minutes before start_date and before end_date
+        // Time Check: Must be within 30 minutes before start_date
         $allowedClockInTime = Carbon::parse($tna->start_date)->subMinutes(30);
         $now = now();
 
-        if ($tna->realization_status !== RealizationStatus::RUNNING) {
-            return back()->with('error', 'Absensi belum dibuka oleh Admin.');
+        if (!in_array($tna->realization_status, [RealizationStatus::OPEN, RealizationStatus::RUNNING])) {
+            return back()->with('error', 'Sesi absensi tertutup (Pelatihan Selesai/Dibatalkan).');
         }
         
         if ($now->lt($allowedClockInTime)) {

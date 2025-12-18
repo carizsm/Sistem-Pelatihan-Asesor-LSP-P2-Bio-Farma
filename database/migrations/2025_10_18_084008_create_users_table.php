@@ -19,15 +19,8 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('role', ['admin', 'trainee'])->default('trainee');
-            
-            $table->foreignId('position_id')
-                  ->nullable()
-                  ->constrained('positions')
-                  ->onDelete('set null');
-            $table->foreignId('unit_id')
-                  ->nullable()
-                  ->constrained('units')
-                  ->onDelete('set null');
+            $table->string('position');
+            $table->string('unit');
             
             $table->rememberToken();
             $table->timestamps();

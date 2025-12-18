@@ -150,54 +150,77 @@
     <div class="register-box">
       <img src="/images/logo-lsp.png" alt="Logo LSP" class="logo">
       <h2>Buat Akun Baru</h2>
-      
-      @if ($errors->any())
-      <div style="color:red; margin-bottom:20px; text-align:left;">
-        <ul>
-          @foreach ($errors->all() as $error)
-            <li>{{ $error }}</li>
-          @endforeach
-        </ul>
-      </div>
-      @endif
-
-      <form method="POST" action="{{ route('register') }}">
+      <form method="POST" action="{{ route('register') }}" data-autosave="register_form">
         @csrf
 
-        <label for="nama"><b>Nama Lengkap</b></label>
+        <label for="name"><b>Nama Lengkap</b></label>
         <input type="text" id="name" name="name" placeholder="Nama Lengkap" value="{{ old('name') }}" required autofocus />
+        @error('name')
+          <div style="color: #e11d48; font-size: 12px; margin-top: -15px; margin-bottom: 15px; text-align: left;">
+            {{  $message }}
+          </div>
+        @enderror
 
-        <label for="nik"><b>NIK</b></label> 
-        <input type="text" id="nik" name="nik" placeholder="NIK" value="{{ old('nik') }}" required /> 
+        <label for="nik"><b>NPK</b></label> 
+        <input type="text" id="nik" name="nik" placeholder="NPK 8 digit" value="{{ old('nik') }}" required /> 
+        @error('nik')
+          <div style="color: #e11d48; font-size: 12px; margin-top: -15px; margin-bottom: 15px; text-align: left;">
+            {{ $message }}
+          </div>
+        @enderror
 
-        <label for="email"><b>Email Biofarma</b></label>
-        <input type="email" id="email" name="email" placeholder="Alamat Email" value="{{ old('email') }}" required />
+        <label for="email"><b>Email</b></label>
+        <input type="email" id="email" name="email" placeholder="Alamat Email (@gmail.com)" value="{{ old('email') }}" required />
+        @error('email')
+          <div style="color: #e11d48; font-size: 12px; margin-top: -15px; margin-bottom: 15px; text-align: left;">
+            {{ $message }}
+          </div>
+        @enderror
+
+        <label for="position"><b>Jabatan</b></label>
+        <input type="text" id="position" name="position" list="position_list" 
+              placeholder="Pilih atau ketik jabatan..." 
+              value="{{ old('position') }}" required />
+        <datalist id="position_list">
+            <option value="Kepala Divisi">
+            <option value="Kepala Departemen">
+            <option value="Kepala Bagian">
+            <option value="Manajer">
+            <option value="Kasubbag">
+            <option value="Staf">
+        </datalist>
+        @error('position')
+            <div style="color: #e11d48; font-size: 12px; margin-top: -15px; margin-bottom: 15px; text-align: left;">
+                {{ $message }}
+            </div>
+        @enderror
+
+        <label for="unit"><b>Unit Kerja</b></label>
+        <input type="text" id="unit" name="unit" placeholder="Contoh: Produksi/QA/QC" 
+              value="{{ old('unit') }}" required />
+        @error('unit')
+            <div style="color: #e11d48; font-size: 12px; margin-top: -15px; margin-bottom: 15px; text-align: left;">
+                {{ $message }}
+            </div>
+        @enderror
 
         <label for="password"><b>Password</b></label>
-        <input type="password" id="password" name="password" placeholder="Password" required autocomplete="new-password" />
+        <input type="password" id="password" name="password" placeholder="Password" 
+               required autocomplete="new-password" style="margin-bottom: 6px;" />
+        <p style="text-align: left; font-size: 12px; color: #666; margin-bottom: 20px; line-height: 1.4;">
+            *Min. 8 karakter, wajib mengandung huruf besar, huruf kecil, angka, dan simbol.
+        </p>
+        @error('password')
+          <div style="color: #e11d48; font-size: 12px; margin-top: 5px; text-align: left;">
+            {{ $message }}
+          </div>
+        @enderror
 
-        <!-- <div class="form-row">
-          <div>
-            <label for="jabatan"><b>Jabatan</b></label>
-            <select id="position_id" name="position_id" disabled>
-              <option value="" disabled selected>Pilih Jabatan disabled</option>
-              <option value="1">Staff</option>
-              <option value="2">Supervisor</option>
-              <option value="3">Manager</option>
-              <option value="4">Direktur</option>
-            </select>
-          </div>
-          <div>
-            <label for="unit"><b>Unit</b></label>
-            <select id="unit_id" name="unit_id" disabled>
-              <option value="" disabled selected>Pilih Unit disabled</option>
-              <option value="1">Produksi</option>
-              <option value="2">Quality Control</option>
-              <option value="3">R&D</option>
-              <option value="4">HR</option>
-            </select>
-          </div>
-        </div> -->
+        <div style="margin-top: 15px; width: 100%;">
+          <label for="password_confirmation"><b>Konfirmasi Password</b></label>
+          <input type="password" id="password_confirmation" name="password_confirmation" 
+                 placeholder="Ulangi Password" required autocomplete="new-password" />
+        </div>
 
         <button type="submit">Daftar</button>
       </form>

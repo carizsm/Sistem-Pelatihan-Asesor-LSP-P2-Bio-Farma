@@ -8,7 +8,6 @@ enum RealizationStatus: string
     case OPEN = 'open';
     case RUNNING = 'running';
     case COMPLETED = 'completed';
-    case CANCELED = 'canceled';
 
     public function label(): string
     {
@@ -16,7 +15,6 @@ enum RealizationStatus: string
             self::OPEN => 'Belum Terealisasi',
             self::RUNNING => 'Sedang Berjalan', 
             self::COMPLETED => 'Terealisasi',
-            self::CANCELED => 'Tidak Terealisasi',
         };
     }
     
@@ -27,7 +25,6 @@ enum RealizationStatus: string
             self::OPEN => 'primary',
             self::RUNNING => 'warning',
             self::COMPLETED => 'success',
-            self::CANCELED => 'danger',
         };
     }
 }

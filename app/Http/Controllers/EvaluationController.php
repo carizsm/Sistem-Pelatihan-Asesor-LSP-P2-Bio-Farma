@@ -186,10 +186,17 @@ class EvaluationController extends Controller
             return redirect()->route('peserta.evaluasi2')->with('error', 'Tipe kuis tidak valid.');
         }
 
+        if ($type === 'pre-test') {
+            $registration->load('presence');
+            if (!$registration->presence || !$registration->presence->check_in) {
+                return redirect()->route('dashboard')
+                    ->with('error', 'Anda wajib melakukan Presensi Masuk (Clock-In) terlebih dahulu sebelum mengerjakan Pre-Test.');
+            }
+        }
+
         $registration->load('tna');
         $tna = $registration->tna;
         
-        // Ambil attempt yang sudah ada (Eager load untuk Review Mode)
         $attempt = QuizAttempt::where('registration_id', $registration->id)
             ->where('type', $type)
             ->with(['traineeAnswers.quizQuestion', 'traineeAnswers.quizAnswer']) 
@@ -200,30 +207,24 @@ class EvaluationController extends Controller
             ->orderBy('question_number')
             ->get();
 
-        // 1. CEK DATA DULU (Review Mode)
-        // Jika sudah ada attempt -> Masuk Review (Abaikan Status TNA)
         if ($attempt) {
             return view('trainee.evaluation2.form', compact('registration', 'tna', 'questions', 'type', 'attempt'));
         }
 
-        // 2. BARU CEK STATUS (Input Mode)
         if ($type === 'pre-test') {
             if ($tna->realization_status === RealizationStatus::COMPLETED) abort(403, 'Pre-test sudah ditutup.');
-            if ($tna->realization_status === RealizationStatus::CANCELED) abort(403, 'Pre-test dibatalkan.');
         } elseif ($type === 'post-test') {
-            // POST-TEST: Butuh status COMPLETED + masih dalam window 1 jam setelah end_date
             if ($tna->realization_status !== RealizationStatus::COMPLETED) {
                 abort(403, 'Post-test belum dibuka.');
             }
             
             $endDate = \Carbon\Carbon::parse($tna->end_date);
             $now = now();
-            if ($now->gt($endDate->copy()->addHour())) {
-                abort(403, 'Waktu pengerjaan Post-test sudah habis (maksimal 1 jam setelah pelatihan selesai).');
+            if ($now->gt($endDate->copy()->addDay())) {
+                abort(403, 'Waktu pengerjaan Post-test sudah habis (maksimal 1 hari setelah pelatihan selesai).');
             }
         }
 
-        // 3. CEK KETERSEDIAAN SOAL (Sebelum masuk ke view)
         if ($questions->isEmpty()) {
             $typeName = $type === 'pre-test' ? 'Pre-Test' : 'Post-Test';
             return redirect()->route('peserta.evaluasi2')
@@ -239,35 +240,38 @@ class EvaluationController extends Controller
         
         if ($registration->user_id !== $user->id) abort(403);
 
+        if ($type === 'pre-test') {
+            $registration->load('presence');
+            if (!$registration->presence || !$registration->presence->check_in) {
+                 return redirect()->route('dashboard')->with('error', 'Gagal menyimpan: Anda belum melakukan Clock-In.');
+            }
+        }
+
         $registration->load('tna');
         $tna = $registration->tna;
 
-        // Security Check
         if ($type === 'pre-test') {
-            if (in_array($tna->realization_status, [RealizationStatus::COMPLETED, RealizationStatus::CANCELED])) {
+            if ($tna->realization_status === RealizationStatus::COMPLETED) {
                 abort(403, 'Waktu pengerjaan Pre-test sudah habis.');
             }
         } elseif ($type === 'post-test') {
-            // POST-TEST: Butuh status COMPLETED + masih dalam window 1 jam setelah end_date
             if ($tna->realization_status !== RealizationStatus::COMPLETED) {
                 abort(403, 'Post-test belum dibuka.');
             }
             
             $endDate = \Carbon\Carbon::parse($tna->end_date);
             $now = now();
-            if ($now->gt($endDate->copy()->addHour())) {
-                abort(403, 'Waktu pengerjaan Post-test sudah habis (maksimal 1 jam setelah pelatihan selesai).');
+            if ($now->gt($endDate->copy()->addDay())) {
+                abort(403, 'Waktu pengerjaan Post-test sudah habis.');
             }
         }
 
-        // Anti-Jebol
         if (QuizAttempt::where('registration_id', $registration->id)->where('type', $type)->exists()) {
             return redirect()->route('peserta.evaluasi2')->with('error', "Anda sudah mengerjakan $type.");
         }
 
         $request->validate(['answers' => 'required|array']);
 
-        // Transaction Logic
         $score = DB::transaction(function () use ($request, $registration, $type, $tna) {
             $answers = $request->answers;
             $questionIds = array_keys($answers);
@@ -305,7 +309,6 @@ class EvaluationController extends Controller
             $finalScore = $totalQuestions > 0 ? ($correctAnswers / $totalQuestions) * 100 : 0;
             $quizAttempt->update(['score' => $finalScore]);
 
-            // Update kelulusan jika Post-Test
             if ($type === 'post-test') {
                 $passingScore = $tna->passing_score ?? 70;
                 $registration->update([
@@ -316,7 +319,6 @@ class EvaluationController extends Controller
             return $finalScore;
         });
         
-        // Cache Dashboard User RESET, Cache Laporan Admin RESET.
         $this->clearUserCaches($user->id, $tna->id);
 
         return redirect()->route('peserta.evaluasi2')

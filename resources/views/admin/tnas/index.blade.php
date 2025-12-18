@@ -71,11 +71,6 @@
                                         Terealisasi
                                     </span>
                                     @break
-                                @case('canceled')
-                                    <span class="{{ $baseClasses }} bg-red-100 text-red-800">
-                                        Tidak Terealisasi
-                                    </span>
-                                    @break
                                 @default
                                     <span class="{{ $baseClasses }} bg-blue-100 text-blue-800">
                                         Belum Terealisasi

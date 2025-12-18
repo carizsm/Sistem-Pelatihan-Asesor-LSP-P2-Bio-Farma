@@ -73,7 +73,7 @@
                     <thead>
                         <tr class="bg-orange-500 text-white">
                             <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">
-                                NIK
+                                NPK
                             </th>
                             <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider">
                                 Nama Karyawan

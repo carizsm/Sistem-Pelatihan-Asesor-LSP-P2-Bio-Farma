@@ -25,8 +25,8 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'position_id',
-        'unit_id'
+        'position',
+        'unit'
     ];
 
     /**
@@ -51,16 +51,6 @@ class User extends Authenticatable
             'password' => 'hashed',
             'role' => UserRole::class
         ];
-    }
-
-    public function unit(): BelongsTo
-    {
-        return $this->belongsTo(Unit::class, 'unit_id');
-    }
-
-    public function position(): BelongsTo
-    {
-        return $this->belongsTo(Position::class, 'position_id');
     }
 
     public function registrations(): HasMany

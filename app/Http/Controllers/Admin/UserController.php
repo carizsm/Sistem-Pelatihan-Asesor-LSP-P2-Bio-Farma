@@ -26,8 +26,8 @@ class UserController extends Controller
                     'id',
                     'nik',
                     'name',
-                    'position_id',
-                    'unit_id',
+                    'position',
+                    'unit',
                     'role'
                 )
                 ->with([
@@ -42,21 +42,19 @@ class UserController extends Controller
 
     public function create()
     {
-        $positions = Position::all();
-        $units = Unit::all();
-        return view('admin.users.form', compact('positions', 'units'));
+        return view('admin.users.form');
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'nik' => 'required|numeric|digits:10|unique:users,nik',
+            'nik' => 'required|numeric|digits:8|unique:users,nik',
             'email' => 'required|email:dns|unique:users,email',    
             'password' => 'required|string|min:8|confirmed',
             'role' => ['required', Rule::in(['admin', 'trainee'])],
-            'position_id' => 'required|exists:positions,id',
-            'unit_id' => 'required|exists:units,id',
+            'position' => 'required|string|max:255',
+            'unit'     => 'required|string|max:255',
         ], [
             'required' => ':attribute wajib diisi.',
             'numeric' => ':attribute harus berupa angka.',
@@ -67,7 +65,7 @@ class UserController extends Controller
             'email' => 'Format email tidak valid.',
             'in' => 'Pilihan :attribute tidak valid.',
         ], [
-            'nik' => 'NIK',
+            'nik' => 'NPK',
             'password' => 'Kata Sandi',
             'role' => 'Peran Pengguna'
         ]);
@@ -84,9 +82,7 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        $positions = Position::all();
-        $units = Unit::all();
-        return view('admin.users.form', compact('user', 'positions', 'units'));
+        return view('admin.users.form', compact('user'));
     }
 
     public function update(Request $request, User $user)
@@ -94,12 +90,12 @@ class UserController extends Controller
         $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email:dns|unique:users,email,' . $user->id,
-            'nik' => 'required|numeric|digits:10|unique:users,nik,' . $user->id,
+            'nik' => 'required|numeric|digits:8|unique:users,nik,' . $user->id,
             'role' => 'required',
         ];
 
         if ($request->filled('password')) {
-            $rules['password'] = 'min:8'; // Kalau diisi, validasi min 8 char
+            $rules['password'] = 'min:8';
         }
 
         $validated = $request->validate($rules);

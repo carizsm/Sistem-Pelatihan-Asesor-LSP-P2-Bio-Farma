@@ -51,14 +51,4 @@ class TnaFactory extends Factory
             'user_id' => null,
         ];
     }
-
-    /**
-     * State khusus untuk memperbarui status realisasi TNA.
-     */
-    public function cancelled(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'realization_status' => RealizationStatus::CANCELED,
-        ]);
-    }
 }

@@ -15,7 +15,10 @@
                 {{ $isEdit ? 'Ubah Data User (Asesor)' : 'Tambah Data User (Asesor)' }}
             </h2>
 
-            <form action="{{ $isEdit ? route('admin.users.update', $user->id) : route('admin.users.store') }}" method="POST">
+            <form action="{{ $isEdit ? route('admin.users.update', $user->id) : route('admin.users.store') }}" 
+                method="POST"
+                data-autosave="admin_user_form_{{ $isEdit ? $user->id : 'create' }}"
+                >
                 @csrf 
                 @if($isEdit)
                     @method('PUT')
@@ -33,17 +36,16 @@
                     @enderror
                 </div>
 
-                {{-- REVISI: Label "NIK Asesor", tapi name="nik" (sesuai Controller) --}}
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">NIK</label>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">NPK</label>
                     <input type="text" 
                         name="nik" 
                         value="{{ old('nik', $user->nik ?? '') }}"
-                        maxlength="10" 
-                        minlength="10"
+                        maxlength="8" 
+                        minlength="8"
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline @error('nik') border-red-500 @enderror"
                         oninput="this.value = this.value.replace(/[^0-9]/g, '')" 
-                        placeholder="Masukkan 10 digit angka"
+                        placeholder="Masukkan 8 digit NPK"
                         required>
                     @error('nik')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -56,6 +58,7 @@
                     <input type="email" name="email" id="email" 
                            value="{{ old('email', $user->email ?? '') }}" 
                            class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500"
+                           placeholder="Alamat Email Pribadi (@gmail.com)"
                            required>
                     @error('email')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -64,36 +67,39 @@
 
                 {{-- REVISI: Dropdown Jabatan (name="position_id") (sesuai Controller) --}}
                 <div class="mb-4">
-                    <label for="position_id" class="block text-sm font-medium text-gray-700 mb-1">Jabatan</label>
-                    <select name="position_id" id="position_id" 
-                            class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500 appearance-none">
-                        <option value="">Pilih Jabatan</option>
-                        {{-- Data $positions dikirim dari Controller --}}
-                        @foreach($positions as $position)
-                            <option value="{{ $position->id }}" {{ old('position_id', $isEdit ? $user->position_id : '') == $position->id ? 'selected' : '' }}>
-                                {{ $position->position_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('position_id')
+                    <label for="position" class="block text-sm font-medium text-gray-700 mb-1">Jabatan</label>
+                    <input type="text" 
+                        name="position" 
+                        id="position" 
+                        list="position_list"
+                        value="{{ old('position', $user->position ?? '') }}" 
+                        class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500"
+                        placeholder="Ketik atau pilih jabatan..."
+                        required>
+                    <datalist id="position_list">
+                        <option value="Kepala Divisi">
+                        <option value="Kepala Departemen">
+                        <option value="Kepala Bagian">
+                        <option value="Manajer">
+                        <option value="Kasubbag">
+                        <option value="Staf">
+                    </datalist>
+                    @error('position')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
                 {{-- REVISI: Dropdown Unit Kerja (name="unit_id") (sesuai Controller) --}}
                 <div class="mb-4">
-                    <label for="unit_id" class="block text-sm font-medium text-gray-700 mb-1">Unit Kerja</label>
-                    <select name="unit_id" id="unit_id" 
-                            class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500 appearance-none">
-                        <option value="">Pilih Unit Kerja</option>
-                        {{-- Data $units dikirim dari Controller --}}
-                        @foreach($units as $unit)
-                            <option value="{{ $unit->id }}" {{ old('unit_id', $isEdit ? $user->unit_id : '') == $unit->id ? 'selected' : '' }}>
-                                {{ $unit->unit_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('unit_id')
+                    <label for="unit" class="block text-sm font-medium text-gray-700 mb-1">Unit Kerja</label>
+                    <input type="text" 
+                        name="unit" 
+                        id="unit" 
+                        value="{{ old('unit', $user->unit ?? '') }}" 
+                        class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500"
+                        placeholder="Contoh: Divisi TI"
+                        required>
+                    @error('unit')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>

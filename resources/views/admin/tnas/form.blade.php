@@ -6,11 +6,8 @@
     $availableUsers = $availableUsers ?? collect();
 
     // Tentukan apakah Mode Baca Saja (View Only)
-    // ReadOnly jika Edit Mode DAN Statusnya COMPLETED atau CANCELED
-    $isReadOnly = $isEdit && in_array($tna->realization_status, [
-        RealizationStatus::COMPLETED,
-        RealizationStatus::CANCELED
-    ]);
+    // ReadOnly jika Edit Mode DAN Statusnya COMPLETED
+    $isReadOnly = $isEdit && $tna->realization_status === RealizationStatus::COMPLETED;
 @endphp
 
 @extends('layouts.admin')
@@ -42,7 +39,11 @@
         {{ $isEdit ? 'Ubah Data TNA' : 'Form TNA Baru' }}
     </h1>
     
-    <form action="{{ $isEdit ? route('admin.tnas.update', $tna->id) : route('admin.tnas.store') }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ $isEdit ? route('admin.tnas.update', $tna->id) : route('admin.tnas.store') }}" 
+        method="POST" 
+        enctype="multipart/form-data"
+        data-autosave="tna_form_{{ $isEdit ? $tna->id : 'create' }}"
+        >
         @csrf 
         @if($isEdit)
             @method('PUT')
@@ -58,42 +59,75 @@
                     {{-- REVISI: name="nama_pelatihan" -> name="name" --}}
                     <input type="text" id="name" name="name" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" 
                            value="{{ old('name', $tna->name ?? '') }}" required @disabled($isReadOnly)>
+                    @error('name')
+                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
                  <div>
                     <label for="passing_score" class="block text-sm font-medium text-gray-700 mb-1">Skor Kelulusan</label>
                     {{-- (Pastikan 'passing_score' ada di $fillable Tna.php) --}}
                     <input type="text" id="passing_score" name="passing_score" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" 
                            value="{{ old('passing_score', $tna->passing_score ?? '') }}" placeholder="Contoh: 75" required @disabled($isReadOnly)>
+                    @error('passing_score')
+                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
                     <label for="pembuat" class="block text-sm font-medium text-gray-700 mb-1">Pembuat</label>
                     <input type="text" class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-500" 
                            value="{{ $isEdit ? ($tna->user->name ?? Auth::user()->name) : Auth::user()->name }}" readonly>
+                    @error('pembuat')
+                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
                 <div>
                     <label for="unit_pembuat" class="block text-sm font-medium text-gray-700 mb-1">Unit Pembuat</label>
                     <input type="text" class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-500" 
                            value="{{ $isEdit ? ($tna->user->unit->unit_name ?? Auth::user()->unit->unit_name) : (Auth::user()->unit->unit_name ?? 'N/A') }}" readonly>
+                    @error('unit_pembuat')
+                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
                 
                 <div>
                     <label for="tna_code" class="block text-sm font-medium text-gray-700 mb-1">Kode TNA</label>
                     <input type="text" id="tna_code" name="tna_code" class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-500" 
                            value="{{ old('tna_code', $tna->tna_code ?? 'Akan digenerate otomatis') }}" readonly>
+                    @error('tna_code')
+                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
                 <div>
                     <label for="period" class="block text-sm font-medium text-gray-700 mb-1">Periode</label>
                     {{-- REVISI: name="periode" -> name="period" --}}
                     <input type="text" id="period" name="period" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" 
                            value="{{ old('period', $tna->period ?? date('Y')) }}" placeholder="Contoh: 2025" readonly>
+                    @error('period')
+                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
                 
                 <div class="col-span-2">
-                    <label for="method" class="block text-sm font-medium text-gray-700 mb-1">Metode Pelatihan</label>
-                    {{-- REVISI: name="metode_pelatihan" -> name="method" --}}
-                    <input type="text" id="method" name="method" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" 
-                           value="{{ old('method', $tna->method ?? '') }}" placeholder="Contoh: In-House / Online" required @disabled($isReadOnly)>
+                    <label for="method" class="block text-gray-700 text-sm font-bold mb-2">
+                        Metode Pelatihan
+                    </label>                  
+                    <select name="method" 
+                            id="method" 
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline @error('method') border-red-500 @enderror"
+                            @disabled($isReadOnly)> <option value="" disabled selected>-- Pilih Metode --</option>
+                        
+                        @foreach(['Online', 'Offline', 'Hybrid'] as $option)
+                            <option value="{{ $option }}" 
+                                {{-- Logic: Cek data lama (saat edit) ATAU old input (saat error validasi) --}}
+                                {{ (old('method', $tna->method ?? '') == $option) ? 'selected' : '' }}>
+                                {{ $option }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('method')
+                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
             </div>
         </div>
@@ -107,12 +141,18 @@
                     {{-- REVISI: name="tanggal_mulai" -> name="start_date" --}}
                     <input type="datetime-local" id="start_date" name="start_date" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" 
                            value="{{ old('start_date', ($isEdit && $tna->start_date) ? $tna->start_date->format('Y-m-d\TH:i') : '') }}" required @disabled($isReadOnly)>
+                    @error('start_date')
+                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
                 <div>
                     <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">Tanggal Selesai</label>
                     {{-- REVISI: name="tanggal_selesai" -> name="end_date" --}}
                     <input type="datetime-local" id="end_date" name="end_date" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" 
                            value="{{ old('end_date', ($isEdit && $tna->end_date) ? $tna->end_date->format('Y-m-d\TH:i') : '') }}" required @disabled($isReadOnly)>
+                    @error('end_date')
+                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
                 
                 <div>
@@ -120,20 +160,30 @@
                     {{-- REVISI: name="pembicara" -> name="speaker" --}}
                     <input type="text" id="speaker" name="speaker" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" 
                            value="{{ old('speaker', $tna->speaker ?? '') }}" placeholder="Nama Pembicara/Instruktur" required @disabled($isReadOnly)>
+                    @error('speaker')
+                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
                 <div>
                     <label for="batch" class="block text-sm font-medium text-gray-700 mb-1">Batch Kegiatan</label>
                     <input type="text" id="batch" name="batch" class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-500" 
                            value="{{ old('batch', $tna->batch ?? 'Akan digenerate otomatis') }}" readonly>
+                    @error('batch')
+                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div class="col-span-2">
-                     <label for="spt_file_path" class="block text-sm font-medium text-gray-700 mb-1">File SPT Instruktur (Opsional)</label>
-                     {{-- REVISI: name="file_spt" -> name="spt_file_path" --}}
-                     <input type="file" id="spt_file_path" name="spt_file_path" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" @disabled($isReadOnly)>
-                     @if($isEdit && $tna->spt_file_path)
-                        <small class="text-gray-500">File saat ini: <a href="{{ asset('storage/'. $tna->spt_file_path) }}" target="_blank" class="text-blue-600 hover:underline">Lihat File</a></small>
-                     @endif
+                    <label for="spt_file_path" class="block text-sm font-medium text-gray-700 mb-1">File SPT Instruktur (Opsional)</label>
+                    {{-- REVISI: name="file_spt" -> name="spt_file_path" --}}
+                    <input type="file" id="spt_file_path" name="spt_file_path" accept=".pdf" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" @disabled($isReadOnly)>
+                    <p class="text-xs text-gray-500 mt-1">Hanya menerima format PDF.</p>
+                    @if($isEdit && $tna->spt_file_path)
+                    <small class="text-gray-500">File saat ini: <a href="{{ asset('storage/'. $tna->spt_file_path) }}" target="_blank" class="text-blue-600 hover:underline">Lihat File</a></small>
+                    @endif
+                    @error('spt_file_path')
+                        <p class="text-red-500 text-xs italic mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
             </div>
         </div>
@@ -145,20 +195,32 @@
                 <div>
                     <label for="reason" class="block text-sm font-medium text-gray-700 mb-1">Alasan</label>
                     <textarea id="reason" name="reason" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" required @disabled($isReadOnly)>{{ old('reason', $tna->reason ?? '') }}</textarea>
+                    @error('reason')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
                 <div>
                     <label for="before_status" class="block text-sm font-medium text-gray-700 mb-1">Kondisi Sebelum</label>
                     <textarea id="before_status" name="before_status" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" required @disabled($isReadOnly)>{{ old('before_status', $tna->before_status ?? '') }}</textarea>
+                    @error('before_status')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-6 mb-4">
                 <div>
                     <label for="goal" class="block text-sm font-medium text-gray-700 mb-1">Tujuan</label>
                     <textarea id="goal" name="goal" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" required @disabled($isReadOnly)>{{ old('goal', $tna->goal ?? '') }}</textarea>
+                    @error('goal')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
                 <div>
                     <label for="after_status" class="block text-sm font-medium text-gray-700 mb-1">Kondisi Diharapkan</label>
                     <textarea id="after_status" name="after_status" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-orange-500 focus:border-orange-500" required @disabled($isReadOnly)>{{ old('after_status', $tna->after_status ?? '') }}</textarea>
+                    @error('after_status')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
             </div>
             <div class="form-group">
@@ -271,7 +333,7 @@
                             Nama Karyawan
                         </th>
                         <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                            NIK
+                            NPK
                         </th>
                         <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                             Nama Unit

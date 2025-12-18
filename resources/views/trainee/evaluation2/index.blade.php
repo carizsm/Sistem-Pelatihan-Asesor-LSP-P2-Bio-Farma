@@ -23,7 +23,7 @@
                 $endDate = \Carbon\Carbon::parse($tna->end_date);
                 
                 // PRE-TEST: Buka saat Persiapan (OPEN) atau Sedang Jalan (RUNNING)
-                // Tutup kalau sudah dikerjakan ATAU status COMPLETED/CANCELED
+                // Tutup kalau sudah dikerjakan ATAU status COMPLETED
                 $isPreTestOpen = !$preTestAttempt && in_array($status, [
                     \App\Enums\RealizationStatus::OPEN, 
                     \App\Enums\RealizationStatus::RUNNING

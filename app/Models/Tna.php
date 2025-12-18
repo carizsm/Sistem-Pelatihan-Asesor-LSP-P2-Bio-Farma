@@ -67,9 +67,6 @@ class Tna extends Model
     {
         return Attribute::make(
             get: function () {
-                if ($this->realization_status === RealizationStatus::CANCELED) {
-                    return 'Dibatalkan';
-                }
 
                 if (now()->isAfter($this->end_date)) {
                     return 'Selesai';

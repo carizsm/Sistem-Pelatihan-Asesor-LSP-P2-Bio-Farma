@@ -21,7 +21,11 @@
 
     {{-- Isi Konten --}}
     <div class="bg-white rounded-xl shadow-sm p-6 flex-1 overflow-y-auto">
-        <form id="feedback-form" method="POST" action="{{ route('evaluasi1.store', $registration) }}">
+        <form id="feedback-form" method="POST" action="{{ route('evaluasi1.store', $registration) }}"
+            @if(!isset($feedback)) 
+                data-autosave="feedback_{{ $registration->id }}" 
+            @endif
+            >
             @csrf
             <div class="overflow-x-auto">
                 <table class="evaluation-table w-full border-collapse border border-gray-300">
@@ -131,82 +135,4 @@
             </div>
         </form>
     </div>
-
-    @push('scripts')
-    <script>
-        // Alpine component untuk auto-save feedback
-        document.addEventListener('DOMContentLoaded', function() {
-            @if(!isset($feedback))
-                // MODE PENGISIAN - Enable auto-save
-                const form = document.getElementById('feedback-form');
-                const registrationId = {{ $registration->id }};
-                const storageKey = `feedback_${registrationId}`;
-
-                // Restore saved data dari localStorage
-                function restoreSavedData() {
-                    const savedData = localStorage.getItem(storageKey);
-                    if (savedData) {
-                        const answers = JSON.parse(savedData);
-                        Object.keys(answers).forEach(scoreField => {
-                            const radio = document.querySelector(`input[name="${scoreField}"][value="${answers[scoreField]}"]`);
-                            if (radio) {
-                                radio.checked = true;
-                            }
-                        });
-                        console.log('✅ Data feedback berhasil di-restore dari localStorage');
-                    }
-                }
-
-                // Save data ke localStorage setiap ada perubahan
-                function saveToLocalStorage() {
-                    const formData = new FormData(form);
-                    const answers = {};
-                    
-                    for (let [key, value] of formData.entries()) {
-                        if (key.startsWith('score_')) {
-                            answers[key] = value;
-                        }
-                    }
-                    
-                    localStorage.setItem(storageKey, JSON.stringify(answers));
-                    console.log('💾 Data feedback disimpan ke localStorage', answers);
-                }
-
-                // Event listener untuk semua radio button
-                document.querySelectorAll('input[type="radio"]').forEach(radio => {
-                    radio.addEventListener('change', saveToLocalStorage);
-                });
-
-                // Auto-save sebelum page unload
-                window.addEventListener('beforeunload', saveToLocalStorage);
-
-                // Submit handler - clear localStorage setelah submit
-                form.addEventListener('submit', function() {
-                    localStorage.removeItem(storageKey);
-                    console.log('🗑️ Data feedback dihapus dari localStorage (submitted)');
-                });
-
-                // Restore data saat halaman dimuat
-                restoreSavedData();
-
-                // Visual indicator untuk auto-save (optional)
-                let saveIndicator = document.createElement('div');
-                saveIndicator.id = 'save-indicator';
-                saveIndicator.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg opacity-0 transition-opacity duration-300';
-                saveIndicator.textContent = '✓ Tersimpan otomatis';
-                document.body.appendChild(saveIndicator);
-
-                // Show indicator saat save
-                const originalSave = saveToLocalStorage;
-                saveToLocalStorage = function() {
-                    originalSave();
-                    saveIndicator.style.opacity = '1';
-                    setTimeout(() => {
-                        saveIndicator.style.opacity = '0';
-                    }, 2000);
-                };
-            @endif
-        });
-    </script>
-    @endpush
 @endsection

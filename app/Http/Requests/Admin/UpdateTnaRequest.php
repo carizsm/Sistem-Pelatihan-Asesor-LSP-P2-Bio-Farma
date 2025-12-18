@@ -18,7 +18,7 @@ class UpdateTnaRequest extends FormRequest
         return [
             // Informasi Umum TNA
             'name'          => ['required', 'string', 'max:255'],
-            'method'        => ['required', 'string', 'max:255'],
+            'method'        => ['required', Rule::in(['Online', 'Offline', 'Hybrid'])],
             'passing_score' => ['required', 'integer', 'between:0,100'],
             'period'        => ['required', 'integer', 'digits:4'],
 
@@ -26,10 +26,10 @@ class UpdateTnaRequest extends FormRequest
             'start_date'    => ['required', 'date'],
             'end_date'      => ['required', 'date', 'after_or_equal:start_date'],
             'speaker'       => ['required', 'string', 'max:255'],
-            'spt_file_path' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:2048'],
+            'spt_file_path' => ['nullable', 'file', 'mimes:pdf', 'max:2048'],
 
             // Analisis dan Justifikasi
-            'reason'        => ['required', 'string', 'max:1000'], // Saya naikkan dikit biar lega
+            'reason'        => ['required', 'string', 'max:1000'],
             'goal'          => ['required', 'string', 'max:1000'],
             'before_status' => ['required', 'string', 'max:1000'],
             'after_status'  => ['required', 'string', 'max:1000'],

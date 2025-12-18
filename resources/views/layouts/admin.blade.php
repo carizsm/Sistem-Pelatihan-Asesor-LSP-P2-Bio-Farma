@@ -247,6 +247,52 @@
                 }
             }
         }
+
+        // Auto save ke storage brwoser
+        document.addEventListener('DOMContentLoaded', function() {
+            const forms = document.querySelectorAll('form[data-autosave]');
+
+            forms.forEach(form => {
+                const formId = form.getAttribute('data-autosave');
+                const storageKey = 'autosave_' + formId;
+                
+                // Kembalikan data saat halaman dibuka
+                const savedData = JSON.parse(localStorage.getItem(storageKey)) || {};
+
+                // Loop semua input di dalam form
+                form.querySelectorAll('input, textarea, select').forEach(input => {
+                    if (input.type === 'file' || input.type === 'password' || input.type === 'submit') return;
+                    const name = input.name;
+                    if (!name) return;
+
+                    // Restore value jika ada di storage
+                    if (savedData[name] !== undefined) {
+                        if (input.type === 'radio' || input.type === 'checkbox') {
+                            if (input.value === savedData[name]) {
+                                input.checked = true;
+                            }
+                        } else {
+                            input.value = savedData[name];
+                        }
+                    }
+
+                    // Simpan saat user mengubah
+                    input.addEventListener('input', function() {
+                        let val = this.value;
+
+                        if (this.type === 'checkbox' && !this.checked) val = ''; // Handle uncheck
+                        
+                        savedData[name] = val;
+                        localStorage.setItem(storageKey, JSON.stringify(savedData));
+                    });
+                });
+
+                // Hapus data saat form sukses disubmit
+                form.addEventListener('submit', function() {
+                    localStorage.removeItem(storageKey);
+                });
+            });
+        });
     </script>
 </body>
 </html>

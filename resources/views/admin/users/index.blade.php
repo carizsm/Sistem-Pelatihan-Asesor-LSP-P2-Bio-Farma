@@ -25,7 +25,7 @@
                 <thead>
                     <tr>
                         <th class="sticky top-0 z-10 px-5 py-3 border-b-2 border-gray-200 bg-orange-500 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                            NIK
+                            NPK
                         </th>
                         <th class="sticky top-0 z-10 px-5 py-3 border-b-2 border-gray-200 bg-orange-500 text-left text-xs font-semibold text-white uppercase tracking-wider">
                             Nama Asesor
@@ -48,8 +48,8 @@
                             {{-- Data disesuaikan dengan field dari UserController --}}
                             <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">{{ $user->nik }}</td>
                             <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">{{ $user->name }}</td>
-                            <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">{{ $user->position->position_name ?? 'N/A' }}</td>
-                            <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">{{ $user->unit->unit_name ?? 'N/A' }}</td>
+                            <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">{{ $user->position ?? 'N/A' }}</td>
+                            <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">{{ $user->unit ?? 'N/A' }}</td>
                             <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
                                 
                                 {{-- Tombol Edit --}}

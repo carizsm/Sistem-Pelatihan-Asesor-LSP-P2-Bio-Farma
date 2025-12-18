@@ -20,73 +20,60 @@ class DatabaseSeeder extends Seeder
         $this->command->info('🚀 Starting database seeding...');
         $this->command->newLine();
 
-        // 1. Seed master data terlebih dahulu
-        $this->command->info('📋 Step 1: Seeding master data...');
-        $this->call([
-            PositionSeeder::class,
-            UnitSeeder::class,
-        ]);
-
-        // 2. Buat user khusus untuk Unit LSP
-        $this->command->info('👤 Step 2: Creating LSP unit users...');
+        // 1. Buat user khusus untuk Unit LSP
+        $this->command->info('👤 Step 1: Creating LSP unit users...');
         $this->call([
             UserSeeder::class,
         ]);
 
-        // 3. Buat Admin user
-        $this->command->info('👤 Step 3: Creating admin user...');
-        $position = Position::first();
-        $unit = Unit::first();
+        // 2. Buat Admin user
+        $this->command->info('👤 Step 2: Creating admin user...');
 
-        User::factory()->admin()->create([
-            'name' => 'Admin User',
-            'email' => 'admin@biofarma.com',
-            'nik' => '1234567890',
-            'position_id' => $position?->id,
-            'unit_id' => $unit?->id,
-        ]);
+        // 3. Buat Trainee users
+        $this->command->info('👥 Step 3: Creating trainee users...');
 
-        // 4. Buat Trainee users
-        $this->command->info('👥 Step 4: Creating trainee users...');
+        $posOptions = ['Kepala Divisi', 'Kepala Departemen', 'Kepala Bagian', 'Manajer', 'Supervisor', 'Staf'];
+        $unitOptions = ['Human Capital', 'Keuangan', 'QA', 'QC', 'Produksi', 'LSP'];
+
         User::factory()
             ->count(15)
             ->create([
-                'position_id' => Position::inRandomOrder()->first()?->id,
-                'unit_id' => Unit::inRandomOrder()->first()?->id,
+                'position' => fn() => $posOptions[array_rand($posOptions)],
+                'unit' => fn() => $unitOptions[array_rand($unitOptions)],
             ]);
 
-        // 5. Seed TNA (tanpa Quiz)
-        $this->command->info('📚 Step 5: Creating TNAs...');
+        // 4. Seed TNA (tanpa Quiz)
+        $this->command->info('📚 Step 4: Creating TNAs...');
         $this->call([
             TNASeeder::class,
         ]);
 
-        // 6. Seed Quiz Questions & Answers
-        $this->command->info('❓ Step 6: Creating Quiz Questions & Answers...');
+        // 5. Seed Quiz Questions & Answers
+        $this->command->info('❓ Step 5: Creating Quiz Questions & Answers...');
         $this->call([
             QuizSeeder::class,
         ]);
 
-        // 7. Seed Registrations
-        $this->command->info('📝 Step 7: Creating registrations...');
+        // 6. Seed Registrations
+        $this->command->info('📝 Step 6: Creating registrations...');
         $this->call([
             RegistrationSeeder::class,
         ]);
 
-        // 8. Seed Quiz Attempts (Pre-Test & Post-Test)
-        $this->command->info('✍️  Step 8: Creating quiz attempts (Pre-Test & Post-Test)...');
+        // 7. Seed Quiz Attempts (Pre-Test & Post-Test)
+        $this->command->info('✍️  Step 7: Creating quiz attempts (Pre-Test & Post-Test)...');
         $this->call([
             QuizAttemptSeeder::class,
         ]);
 
-        // 9. Seed Presences
-        $this->command->info('⏰ Step 9: Creating presences based on TNA schedule...');
+        // 8. Seed Presences
+        $this->command->info('⏰ Step 8: Creating presences based on TNA schedule...');
         $this->call([
             PresenceSeeder::class,
         ]);
 
-        // 10. Seed Feedback Results (YANG HILANG)
-        $this->command->info('💬 Step 10: Creating feedback results...');
+        // 9. Seed Feedback Results (YANG HILANG)
+        $this->command->info('💬 Step 9: Creating feedback results...');
         $this->call([
             FeedbackResultSeeder::class,
         ]);

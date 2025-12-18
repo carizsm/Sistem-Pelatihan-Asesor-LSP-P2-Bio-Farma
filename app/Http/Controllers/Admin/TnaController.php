@@ -94,7 +94,7 @@ class TnaController extends Controller
 
         // --- SKENARIO 1: JIKA TNA SUDAH SELESAI/BATAL (Mode View-Only) ---
         // Di sini kita hanya mengizinkan update pada kolom 'realization_status'
-        if (in_array($tna->realization_status, [RealizationStatus::COMPLETED, RealizationStatus::CANCELED])) {
+        if ($tna->realization_status === RealizationStatus::COMPLETED) {
             
             // 1. Validasi HANYA input status (abaikan name, method, dll yang kosong)
             $request->validate([
@@ -166,10 +166,6 @@ class TnaController extends Controller
     public function cancel(Tna $tna)
     {
         $this->authorize('update', $tna);
-        
-        $tna->update([
-            'realization_status' => RealizationStatus::CANCELED
-        ]);
         
         // Bersih-bersih standar
         $this->flushTnaCache($tna);

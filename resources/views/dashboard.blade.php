@@ -23,7 +23,7 @@
                 <span class="font-bold text-gray-900">: {{ Auth::user()->name ?? '-' }}</span>
             </div>
             <div class="flex">
-                <span class="w-32 font-semibold text-gray-700">NIK</span>
+                <span class="w-32 font-semibold text-gray-700">NPK</span>
                 <span class="font-bold text-gray-900">: {{ Auth::user()->nik ?? '-' }}</span>
             </div>
             <div class="flex">

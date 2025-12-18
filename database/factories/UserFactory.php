@@ -30,12 +30,14 @@ class UserFactory extends Factory
             'email' => $this->faker->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
-            // Role default dari user adalah trainee
             'role' => UserRole::TRAINEE,
             'remember_token' => Str::random(10),
-
-            'position_id' => null,
-            'unit_id' => null,
+            'position' => $this->faker->randomElement([
+                'Kepala Divisi', 'Kepala Departemen', 'Kepala Bagian', 'Manajer', 'Kasubbag', 'Staf'
+            ]),
+            'unit' => $this->faker->randomElement([
+                'Human Capital', 'Keuangan', 'QA', 'QC', 'Produksi', 'LSP'
+            ]),
         ];
     }
 
