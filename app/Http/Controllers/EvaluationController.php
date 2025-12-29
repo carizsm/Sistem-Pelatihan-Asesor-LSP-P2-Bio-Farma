@@ -243,7 +243,7 @@ class EvaluationController extends Controller
         if ($type === 'pre-test') {
             $registration->load('presence');
             if (!$registration->presence || !$registration->presence->clock_in) {
-                 return redirect()->route('dashboard')->with('error', 'Gagal menyimpan: Anda belum melakukan Clock-In.');
+                 return redirect()->route('dashboard')->with('error', 'Gagal menyimpan: Anda belum melakukan clock-in.');
             }
         }
 
@@ -296,13 +296,17 @@ class EvaluationController extends Controller
                 
                 $answer = $question->quizAnswers->firstWhere('id', $answerId);
                 $isCorrect = $answer && $answer->is_correct;
-                
-                TraineeAnswer::create([
-                    'quiz_attempt_id' => $quizAttempt->id,
-                    'quiz_question_id' => $questionId,
-                    'quiz_answer_id' => $answerId,
-                ]);
 
+                TraineeAnswer::updateOrCreate(
+                    [
+                        'quiz_attempt_id' => $quizAttempt->id,
+                        'quiz_question_id' => $questionId
+                    ],
+                    [
+                        'quiz_answer_id' => $answerId
+                    ]
+                );
+                
                 if ($isCorrect) $correctAnswers++;
             }
 

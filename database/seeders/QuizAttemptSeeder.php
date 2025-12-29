@@ -16,7 +16,12 @@ class QuizAttemptSeeder extends Seeder
     public function run(): void
     {
         // Pastikan eager load quizAnswers biar query gak berat (N+1 Problem)
-        $registrations = Registration::with('tna.quizQuestions.quizAnswers')->get();
+        // $registrations = Registration::with('tna.quizQuestions.quizAnswers')->get();
+
+        $registrations = Registration::with('tna.quizQuestions.quizAnswers')
+                                ->inRandomOrder()
+                                ->take(10) // Atau pakai ->limit(10)
+                                ->get();
 
         if ($registrations->isEmpty()) {
             $this->command->warn('No registrations found. Please run RegistrationSeeder first.');

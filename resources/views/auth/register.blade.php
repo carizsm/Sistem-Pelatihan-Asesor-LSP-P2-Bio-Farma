@@ -35,26 +35,28 @@
       margin-left: 50%;
       overflow-y: auto;
       display: flex;
+      align-items: flex-start;
       justify-content: center;
-      align-items: center;
       padding: 40px 0;
+      min-height: 100vh;
     }
 
     .register-box {
       width: 100%;
       max-width: 420px;
       text-align: center;
+      margin: auto;
     }
 
     .logo {
       width: 266px;
-      margin-top : 98px;
-      margin-bottom: 60px;
+      margin-top : 45px;
+      margin-bottom: 30px;
     }
 
     h2 {
       font-size: 22px;
-      margin-bottom: 64px;
+      margin-bottom: 30px;
       color: #707070;
       font-weight: 600;
     }
@@ -156,7 +158,7 @@
         <label for="name"><b>Nama Lengkap</b></label>
         <input type="text" id="name" name="name" placeholder="Nama Lengkap" value="{{ old('name') }}" required autofocus />
         @error('name')
-          <div style="color: #e11d48; font-size: 12px; margin-top: -15px; margin-bottom: 15px; text-align: left;">
+          <div style="color: #e11d48; font-size: 12px; margin-top: -15px; margin-bottom: 15px; text-align: left; width: 100%;">
             {{  $message }}
           </div>
         @enderror
@@ -164,7 +166,7 @@
         <label for="nik"><b>NPK</b></label> 
         <input type="text" id="nik" name="nik" placeholder="NPK 8 digit" value="{{ old('nik') }}" required /> 
         @error('nik')
-          <div style="color: #e11d48; font-size: 12px; margin-top: -15px; margin-bottom: 15px; text-align: left;">
+          <div style="color: #e11d48; font-size: 12px; margin-top: -15px; margin-bottom: 15px; text-align: left; width: 100%;">
             {{ $message }}
           </div>
         @enderror
@@ -172,7 +174,7 @@
         <label for="email"><b>Email</b></label>
         <input type="email" id="email" name="email" placeholder="Alamat Email (@gmail.com)" value="{{ old('email') }}" required />
         @error('email')
-          <div style="color: #e11d48; font-size: 12px; margin-top: -15px; margin-bottom: 15px; text-align: left;">
+          <div style="color: #e11d48; font-size: 12px; margin-top: -15px; margin-bottom: 15px; text-align: left; width: 100%;">
             {{ $message }}
           </div>
         @enderror
@@ -190,7 +192,7 @@
             <option value="Staf">
         </datalist>
         @error('position')
-            <div style="color: #e11d48; font-size: 12px; margin-top: -15px; margin-bottom: 15px; text-align: left;">
+            <div style="color: #e11d48; font-size: 12px; margin-top: -15px; margin-bottom: 15px; text-align: left; width: 100%;">
                 {{ $message }}
             </div>
         @enderror
@@ -199,36 +201,80 @@
         <input type="text" id="unit" name="unit" placeholder="Contoh: Produksi/QA/QC" 
               value="{{ old('unit') }}" required />
         @error('unit')
-            <div style="color: #e11d48; font-size: 12px; margin-top: -15px; margin-bottom: 15px; text-align: left;">
+            <div style="color: #e11d48; font-size: 12px; margin-top: -15px; margin-bottom: 15px; text-align: left; width: 100%;">
                 {{ $message }}
             </div>
         @enderror
 
         <label for="password"><b>Password</b></label>
         <input type="password" id="password" name="password" placeholder="Password" 
-               required autocomplete="new-password" style="margin-bottom: 6px;" />
-        <p style="text-align: left; font-size: 12px; color: #666; margin-bottom: 20px; line-height: 1.4;">
-            *Min. 8 karakter, wajib mengandung huruf besar, huruf kecil, angka, dan simbol.
+          required autocomplete="new-password" style="margin-bottom: 6px;" />
+        <p style="text-align: left; font-size: 12px; color: #666; margin-bottom: 5px; line-height: 1.4;">
+          *Min. 8 karakter, wajib mengandung huruf besar, huruf kecil, angka, dan simbol.
         </p>
         @error('password')
-          <div style="color: #e11d48; font-size: 12px; margin-top: 5px; text-align: left;">
+          <div style="color: #e11d48; font-size: 12px; margin-top: 2px; margin-bottom: 15px; text-align: left; width: 100%;">
             {{ $message }}
           </div>
         @enderror
 
-        <div style="margin-top: 5px; width: 100%; text-align: left;">
+        <div style="margin-top: 15px; width: 100%; text-align: left;">
           <label for="password_confirmation"><b>Konfirmasi Password</b></label>
           <input type="password" id="password_confirmation" name="password_confirmation" 
-                 placeholder="Ulangi Password" required autocomplete="new-password" />
+                placeholder="Ulangi Password" required autocomplete="new-password" />
         </div>
+        @error('password_confirmation')
+          <div style="color: #e11d48; font-size: 12px; margin-top: 5px; text-align: left; width: 100%;">
+            {{ $message }}
+          </div>
+        @enderror
 
         <button type="submit">Daftar</button>
       </form>
 
       <div class="login-link">
-        Sudah punya akun? <a href="{{ route('login') }}">Masuk disini</a>
+        Sudah punya akun? <a href="{{ route('login') }}">Masuk di sini</a>
       </div>
     </div>
   </div>
+
+  <script>
+    // Auto save ke storage brwoser
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.querySelector('form[data-autosave]');
+      if (!form) return;
+
+      const formId = form.getAttribute('data-autosave');
+      const storageKey = 'autosave_' + formId;
+
+      // Kembalikan data saat halaman dibuka
+      const savedData = JSON.parse(localStorage.getItem(storageKey)) || {};
+
+      // Loop semua input di dalam form
+      form.querySelectorAll('input, select').forEach(input => {
+        if (input.type === 'password' || input.type === 'hidden' || input.type === 'submit') return;
+        
+        const name = input.name;
+        if (!name) return;
+
+        // Restore value jika ada di storage
+        if (savedData[name] !== undefined) {
+          input.value = savedData[name];
+        }
+
+        // Simpan saat user mengubah
+        input.addEventListener('input', function() {
+          savedData[name] = this.value;
+          localStorage.setItem(storageKey, JSON.stringify(savedData));
+        });
+      });
+
+      form.addEventListener('submit', function() {
+        localStorage.removeItem(storageKey);
+      });
+    });
+  </script>
+</body>
+</html>
 </body>
 </html>

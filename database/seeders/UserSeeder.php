@@ -21,7 +21,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Ahmad Fauzi',
                 'nik' => '10012345',
-                'email' => 'ahmad.fauzi@biofarma.com',
+                'email' => 'ahmad.fauzi@gmail.com',
                 'position' => 'Staf',
                 'unit' => 'LSP',
                 'role' => UserRole::ADMIN,
@@ -29,10 +29,18 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Siti Nurhaliza',
                 'nik' => '10012346',
-                'email' => 'siti.nurhaliza@biofarma.com',
+                'email' => 'siti.nurhaliza@gmail.com',
                 'position' => 'Staf',
                 'unit' => 'LSP',
                 'role' => UserRole::ADMIN,
+            ],
+            [
+                'name' => 'Aceng Nurahman',
+                'nik' => '10012347',
+                'email' => 'aceng@gmail.com',
+                'position' => 'Manajer',
+                'unit' => 'Keuangan',
+                'role' => UserRole::TRAINEE,
             ],
         ];
 

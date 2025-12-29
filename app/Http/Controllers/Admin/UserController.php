@@ -5,12 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Traits\ClearsRelatedCache;
 use App\Models\User;
-use App\Models\Position;
-use App\Models\Unit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
@@ -21,17 +20,16 @@ class UserController extends Controller
         // OPTIMIZED: Cache users list with selective column fetching
         $page = request()->get('page', 1);
         
-        $users = Cache::remember('admin_users_list_page_' . $page, 60, function () {
-            return User::select(
-                    'id',
-                    'nik',
-                    'name',
-                    'position',
-                    'unit',
-                    'role'
-                )
-                ->paginate(10);
-        });
+        $users = User::select(
+            'id',
+            'nik',
+            'name',
+            'position',
+            'unit',
+            'role'
+        )
+        ->latest()
+        ->paginate(10);
         
         return view('admin.users.index', compact('users'));
     }
@@ -45,9 +43,9 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'nik' => 'required|numeric|digits:8|unique:users,nik',
-            'email' => 'required|email:dns|unique:users,email',    
-            'password' => 'required|string|min:8|confirmed',
+            'nik' => ['required', 'numeric', 'digits:8', 'unique:'.User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class, 'ends_with:@gmail.com'],
+            'password' => ['required', Password::defaults(), 'confirmed'],
             'role' => ['required', Rule::in(['admin', 'trainee'])],
             'position' => 'required|string|max:255',
             'unit'     => 'required|string|max:255',
@@ -55,10 +53,14 @@ class UserController extends Controller
             'required' => ':attribute wajib diisi.',
             'numeric' => ':attribute harus berupa angka.',
             'digits' => ':attribute harus berjumlah tepat :digits digit.',
-            'unique' => ':attribute sudah terdaftar, gunakan yang lain.',
-            'min' => ':attribute minimal harus :min karakter.',
-            'confirmed' => 'Konfirmasi password tidak cocok.',
+            'unique' => ':attribute sudah terdaftar.',
             'email' => 'Format email tidak valid.',
+            'confirmed' => 'Konfirmasi :attribute tidak cocok.',
+            'min' => ':attribute minimal :min karakter.',
+            'password.mixed' => 'Kata Sandi harus menggabungkan huruf besar dan kecil.',
+            'password.numbers' => 'Kata Sandi wajib mengandung angka.',
+            'password.symbols' => 'Kata Sandi wajib mengandung simbol/tanda baca.',
+            'email.ends_with' => 'Maaf, Anda wajib menggunakan alamat email @gmail.com.',
             'in' => 'Pilihan :attribute tidak valid.',
         ], [
             'nik' => 'NPK',
@@ -85,16 +87,22 @@ class UserController extends Controller
     {
         $rules = [
             'name' => 'required|string|max:255',
-            'email' => 'required|email:dns|unique:users,email,' . $user->id,
+            'email' => 'required|email:dns|ends_with:@gmail.com|unique:users,email,' . $user->id,
             'nik' => 'required|numeric|digits:8|unique:users,nik,' . $user->id,
-            'role' => 'required',
+            'position' => 'required|string|max:255',
+            'unit' => 'required|string|max:255',
+            'role' => 'required|in:admin,trainee',
         ];
 
         if ($request->filled('password')) {
-            $rules['password'] = 'min:8';
+            $rules['password'] = 'min:8|confirmed';
         }
 
-        $validated = $request->validate($rules);
+
+        $validated = $request->validate($rules, [
+            'email.ends_with' => 'Email harus menggunakan domain @gmail.com',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+        ]);
 
         if ($request->filled('password')) {
             $validated['password'] = bcrypt($request->password);
@@ -104,7 +112,8 @@ class UserController extends Controller
 
         $user->update($validated);
 
-        return redirect()->route('admin.users.index')->with('success', 'Data User berhasil diperbarui.');
+        return redirect()->route('admin.users.index')
+            ->with('success', 'Data User berhasil diperbarui.');
     }
 
     public function destroy(User $user)

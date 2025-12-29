@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Enums\UserRole;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,13 +35,13 @@ class RegisteredUserController extends Controller
         Log::info('REGISTER REQUEST:', $request->all());
 
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'name' => 'required|string|max:255',
             'nik' => ['required', 'numeric', 'digits:8', 'unique:'.User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class, 'ends_with:@gmail.com'],
             'password' => ['required', Password::defaults(), 'confirmed'],
-            // 'position' => 'required|string|max:255',
-            // 'unit' => 'required|string|max:255',
             'role' => 'trainee',
+            'position' => 'required|string|max:255',
+            'unit' => 'required|string|max:255',
         ], [
             'required' => ':attribute wajib diisi.',
             'numeric' => ':attribute harus berupa angka.',
@@ -54,6 +53,7 @@ class RegisteredUserController extends Controller
             'password.mixed' => 'Kata Sandi harus menggabungkan huruf besar dan kecil.',
             'password.numbers' => 'Kata Sandi wajib mengandung angka.',
             'password.symbols' => 'Kata Sandi wajib mengandung simbol/tanda baca.',
+            'email.ends_with' => 'Maaf, Anda wajib menggunakan alamat email @gmail.com.',
         ], [
             'nik' => 'NPK',
             'password' => 'Kata Sandi'

@@ -389,15 +389,39 @@
 
                 init() {
                     @if(!isset($attempt))
-                        // MODE PENGERJAAN
-                        const savedAnswers = localStorage.getItem('quiz_{{ $registration->id }}_{{ $type }}');
+                        const storageKey = 'quiz_{{ $registration->id }}_{{ $type }}';
+                        const pageKey    = 'quiz_{{ $registration->id }}_{{ $type }}_page';
+                        const metaKey    = 'quiz_{{ $registration->id }}_{{ $type }}_meta';
+                        
+                        // Ambil timestamp kapan user ini didaftarkan (dari Server/Database)
+                        const serverToken = {{ $registration->created_at->timestamp }}; 
+                        
+                        // Ambil timestamp yang tersimpan di Browser (Local Storage)
+                        const storedToken = localStorage.getItem(metaKey);
+
+                        // LOGIKA PEMBERSIHAN OTOMATIS:
+                        // Jika di browser ada data TAPI tanggalnya beda sama database (misal habis reset DB),
+                        // Maka HAPUS semua data lama.
+                        if (storedToken && parseInt(storedToken) !== serverToken) {
+                            console.warn('⚠️ Data kadaluarsa terdeteksi (Database Reset). Membersihkan LocalStorage...');
+                            localStorage.removeItem(storageKey);
+                            localStorage.removeItem(pageKey);
+                            localStorage.removeItem(metaKey);
+                        }
+
+                        // Simpan token terbaru biar sinkron
+                        localStorage.setItem(metaKey, serverToken);
+                        // --- [END VALIDASI] ---
+
+                        // MODE PENGERJAAN (Lanjut Normal)
+                        const savedAnswers = localStorage.getItem(storageKey);
                         if (savedAnswers) {
                             this.answers = JSON.parse(savedAnswers);
                             this.restoreAnswersToForm();
                             this.updateAnsweredCount();
                         }
 
-                        const savedPage = localStorage.getItem('quiz_{{ $registration->id }}_{{ $type }}_page');
+                        const savedPage = localStorage.getItem(pageKey);
                         if (savedPage !== null) {
                             this.currentPage = parseInt(savedPage);
                         }
@@ -407,6 +431,7 @@
                             this.answers[questionId] = input.value;
                         });
                         this.updateAnsweredCount();
+
                     @else
                         // MODE REVIEW
                         const savedReviewPage = localStorage.getItem('quiz_{{ $registration->id }}_{{ $type }}_review_page');

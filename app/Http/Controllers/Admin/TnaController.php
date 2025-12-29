@@ -60,8 +60,8 @@ class TnaController extends Controller
         
         $this->flushTnaCache($tna);
         
-        return redirect()->route('admin.tnas.index')
-            ->with('success', 'Data TNA berhasil ditambahkan.');
+        return redirect()->route('admin.tnas.edit', $tna->id)
+            ->with('success', 'TNA berhasil dibuat. Silakan tambahkan peserta untuk pelatihan ini.');
     }
 
     public function show(Tna $tna)
@@ -144,7 +144,7 @@ class TnaController extends Controller
     {
         // SECURITY: Hanya boleh hapus jika OPEN (Belum jalan)
         if ($tna->realization_status !== RealizationStatus::OPEN) {
-            return back()->with('error', 'Hanya pelatihan berstatus OPEN yang dapat dihapus.');
+            return back()->with('error', 'Hanya pelatihan berstatus Belum Terealisasi yang dapat dihapus.');
         }
 
         $this->authorize('delete', $tna);

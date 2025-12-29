@@ -28,7 +28,7 @@ class TNASeeder extends Seeder
         $tnas = Tna::factory()
             ->count(5)
             ->sequence(fn (Sequence $sequence) => [
-                'tna_code' => 'TNA.' . $year . '.' . str_pad($sequence->index + 1, 2, '0', STR_PAD_LEFT),
+                'tna_code' => 'TNA.' . $year . '.' . str_pad($sequence->index + 1, 1, '0', STR_PAD_LEFT),
                 'period' => (string)$year,
             ])
             ->create([

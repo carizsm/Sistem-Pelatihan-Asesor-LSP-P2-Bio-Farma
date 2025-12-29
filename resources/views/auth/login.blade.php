@@ -42,12 +42,12 @@
 
     .logo {
       width: 266px;
-      margin-bottom: 98px;
+      margin-bottom: 45px;
     }
 
     h2 {
       font-size: 22px;
-      margin-bottom: 64px;
+      margin-bottom: 30px;
       color: #707070;
       font-weight: 600;
     }
@@ -187,7 +187,7 @@
 
       <div class="register-link">
         <!-- Lupa password? <a href="{{ route('password.request') }}">Reset di sini</a><br> -->
-        Belum punya akun? <a href="{{ route('register') }}">Daftar disini</a>
+        Belum punya akun? <a href="{{ route('register') }}">Daftar di sini</a>
       </div>
     </div>
   </div>
