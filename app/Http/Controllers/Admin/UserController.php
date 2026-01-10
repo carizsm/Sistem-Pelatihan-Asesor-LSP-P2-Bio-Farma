@@ -75,7 +75,7 @@ class UserController extends Controller
         $this->flushUserCache($user); 
 
         return redirect()->route('admin.users.index')
-            ->with('success', 'User berhasil ditambahkan.');
+            ->with('success', 'Data asesor berhasil ditambahkan.');
     }
 
     public function edit(User $user)
@@ -113,7 +113,7 @@ class UserController extends Controller
         $user->update($validated);
 
         return redirect()->route('admin.users.index')
-            ->with('success', 'Data User berhasil diperbarui.');
+            ->with('success', 'Data asesor berhasil diperbarui.');
     }
 
     public function destroy(User $user)
@@ -124,7 +124,7 @@ class UserController extends Controller
         $this->flushUserCache($user);
 
         return redirect()->route('admin.users.index')
-            ->with('success', 'User berhasil dihapus.');
+            ->with('success', 'Data asesor berhasil dihapus.');
     }
 
     /**

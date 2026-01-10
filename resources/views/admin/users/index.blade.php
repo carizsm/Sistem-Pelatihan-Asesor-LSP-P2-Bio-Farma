@@ -53,7 +53,7 @@
                             <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
                                 
                                 {{-- Tombol Edit --}}
-                                <a href="{{ route('admin.users.edit', $user->id) }}" class="text-orange-500 hover:text-orange-700 mx-1">
+                                <a href="{{ route('admin.users.edit', $user->id) }}" class="text-orange-500 hover:text-orange-700">
                                     <img src="{{ asset('icons/Button Edit.svg') }}" class="w-8 h-8 inline" alt="Edit">
                                 </a>
                                 

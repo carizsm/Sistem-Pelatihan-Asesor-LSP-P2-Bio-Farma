@@ -33,7 +33,7 @@
                         <th class="px-5 py-3 border-b-2 border-gray-200 bg-orange-500 text-left text-xs font-semibold text-white uppercase tracking-wider">
                             Status Realisasi
                         </th>
-                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-orange-500 text-center text-xs font-semibold text-white uppercase tracking-wider">
+                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-orange-500 text-left text-xs font-semibold text-white uppercase tracking-wider">
                             Aksi
                         </th>
                     </tr>
@@ -77,8 +77,8 @@
                                     </span>
                             @endswitch
                         </td>
-                        <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-center">
-                            <a href="{{ route('admin.tnas.edit', $tna->id) }}" class="text-orange-500 hover:text-orange-700 mx-1">
+                        <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
+                            <a href="{{ route('admin.tnas.edit', $tna->id) }}" class="text-orange-500 hover:text-orange-700">
                                 <img src="{{ asset('icons/Button Edit.svg') }}" class="w-8 h-8 inline" alt="Edit">
                             </a>
                             

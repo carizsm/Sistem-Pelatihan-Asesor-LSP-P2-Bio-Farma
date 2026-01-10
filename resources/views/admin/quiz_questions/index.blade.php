@@ -20,7 +20,7 @@
                         <th class="px-5 py-3 border-b-2 border-gray-200 bg-orange-500 text-left text-xs font-semibold text-white uppercase tracking-wider">
                             Jumlah Soal
                         </th>
-                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-orange-500 text-center text-xs font-semibold text-white uppercase tracking-wider">
+                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-orange-500 text-left text-xs font-semibold text-white uppercase tracking-wider">
                             Aksi
                         </th>
                     </tr>
@@ -46,7 +46,7 @@
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-gray-800">
                             {{ $tna->quiz_questions_count }} Soal
                         </td>
-                        <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-center">
+                        <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-left">
                             <a href="{{ route('admin.quiz_questions.show', $tna->id) }}" class="inline-block bg-orange-500 text-white text-sm font-semibold py-1.5 px-4 rounded-lg shadow hover:bg-orange-600 transition duration-200">
                                 Kelola Soal
                             </a>
