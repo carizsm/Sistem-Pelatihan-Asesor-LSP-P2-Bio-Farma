@@ -11,6 +11,27 @@
         $hasQuestions = $questionCount > 0;
     @endphp
 
+    {{-- Notifikasi --}}
+    @if(session('success'))
+        <div class="max-w-3xl mx-auto mb-4 p-4 rounded bg-green-100 border border-green-300 text-green-800">
+            {{ session('success') }}
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="max-w-3xl mx-auto mb-4 p-4 rounded bg-red-100 border border-red-300 text-red-800">
+            {{ session('error') }}
+        </div>
+    @endif
+    @if ($errors->any())
+        <div class="max-w-3xl mx-auto mb-4 p-4 rounded bg-red-100 border border-red-300 text-red-800">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     {{-- Warning Expired --}}
     @if($isExpired)
         <div class="max-w-3xl mx-auto mb-6 p-4 rounded bg-yellow-100 border border-yellow-300 text-yellow-800 flex items-center gap-3">
@@ -64,7 +85,7 @@
 
                 @if($hasQuestions)
                     <button type="button" 
-                        @if(!$isExpired) onclick="showDeleteModal()" @endif
+                        @if(!$isExpired) onclick="showDeleteAllModal()" @endif
                         class="w-full sm:w-auto px-8 py-3 text-lg font-semibold rounded-lg shadow-sm transition duration-200 text-white
                         {{ $isExpired ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700' }}"
                         {{ $isExpired ? 'disabled' : '' }}>
@@ -86,14 +107,14 @@
                     <div class="flex justify-between items-start">
                         <p class="font-semibold text-gray-800 pr-8">{{ $question->question_number }}. {{ $question->question }}</p>
                         
+                        {{-- REVISI: Menggunakan Modal untuk Hapus Satuan --}}
                         @if(!$isExpired)
-                        <form action="{{ route('admin.quiz_questions.destroy', $question->id) }}" method="POST" onsubmit="return confirm('Hapus soal nomor {{ $question->question_number }}?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="hover:opacity-75 p-1" title="Hapus Soal">
-                                <img src="{{ asset('icons/Button Trash.svg') }}" class="w-6 h-6" alt="Hapus">
-                            </button>
-                        </form>
+                        <button type="button" 
+                                onclick="confirmDeleteSingle('{{ route('admin.quiz_questions.destroy', $question->id) }}', '{{ $question->question_number }}')" 
+                                class="hover:opacity-75 p-1 transition" 
+                                title="Hapus Soal">
+                            <img src="{{ asset('icons/Button Trash.svg') }}" class="w-6 h-6" alt="Hapus">
+                        </button>
                         @endif
                     </div>
 
@@ -112,9 +133,6 @@
     </div>
     @endif
 
-    {{-- ============================================================== --}}
-    {{-- MODAL 1: KONFIRMASI GANTI SOAL (UPLOAD)                        --}}
-    {{-- ============================================================== --}}
     <div id="confirmModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50">
         <div class="bg-white rounded-lg shadow-2xl w-full max-w-md p-6 transform transition-all scale-100">
             <div class="flex justify-center mb-4">
@@ -139,10 +157,7 @@
         </div>
     </div>
 
-    {{-- ============================================================== --}}
-    {{-- MODAL 2: KONFIRMASI HAPUS SEMUA (DELETE ALL)                   --}}
-    {{-- ============================================================== --}}
-    <div id="deleteModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50">
+    <div id="deleteAllModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50">
         <div class="bg-white rounded-lg shadow-2xl w-full max-w-md p-6 transform transition-all scale-100">
             <div class="flex justify-center mb-4">
                 <div class="bg-red-100 p-3 rounded-full">
@@ -156,11 +171,36 @@
             </p>
 
             <div class="flex justify-center gap-4">
-                <button onclick="closeModal('deleteModal')" class="px-5 py-2 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition duration-200">
+                <button onclick="closeModal('deleteAllModal')" class="px-5 py-2 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition duration-200">
                     Batal
                 </button>
                 <button onclick="submitDeleteAllForm()" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition duration-200">
                     Ya, Hapus Semua
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteSingleModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-md p-6 transform transition-all scale-100">
+            <div class="flex justify-center mb-4">
+                {{-- Ikon Merah yang sama dengan Hapus Semua --}}
+                <div class="bg-red-100 p-3 rounded-full">
+                    <svg class="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </div>
+            </div>
+            
+            <h3 class="text-xl font-bold text-gray-900 text-center mb-2">Hapus Soal?</h3>
+            <p class="text-gray-600 text-center mb-6">
+                Apakah Anda yakin ingin menghapus <span id="deleteSingleText" class="font-bold text-gray-800">soal ini</span>? Tindakan ini tidak dapat dikembalikan.
+            </p>
+
+            <div class="flex justify-center gap-4">
+                <button onclick="closeModal('deleteSingleModal')" class="px-5 py-2 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition duration-200">
+                    Batal
+                </button>
+                <button onclick="submitDeleteSingleForm()" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition duration-200">
+                    Ya, Hapus
                 </button>
             </div>
         </div>
@@ -173,6 +213,12 @@
         @method('DELETE')
     </form>
     @endif
+
+    {{-- Form Tersembunyi untuk Hapus Satuan (Dinamis) --}}
+    <form id="deleteSingleForm" method="POST" class="hidden">
+        @csrf
+        @method('DELETE')
+    </form>
 
     {{-- Script Logika --}}
     <script>
@@ -189,7 +235,9 @@
             });
         });
 
+        // -------------------------
         // Logika Upload
+        // -------------------------
         function checkUpload() {
             const hasQuestions = {{ $hasQuestions ? 'true' : 'false' }};
             const fileInput = document.getElementById('excel_file');
@@ -205,25 +253,40 @@
                 document.getElementById('uploadForm').submit();
             }
         }
-
-        // Logika Hapus Semua
-        function showDeleteModal() {
-            document.getElementById('deleteModal').classList.remove('hidden');
-        }
-
-        // Fungsi Umum Tutup Modal
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.add('hidden');
-        }
-
-        // Submit Form Upload
         function submitUploadForm() {
             document.getElementById('uploadForm').submit();
         }
 
-        // Submit Form Hapus Semua
+        // -------------------------
+        // Logika Modal (Umum)
+        // -------------------------
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        // -------------------------
+        // Logika Hapus Semua
+        // -------------------------
+        function showDeleteAllModal() {
+            document.getElementById('deleteAllModal').classList.remove('hidden');
+        }
         function submitDeleteAllForm() {
             document.getElementById('deleteAllForm').submit();
+        }
+
+        // -------------------------
+        // Logika Hapus Satuan (Single) - BARU
+        // -------------------------
+        function confirmDeleteSingle(url, number) {
+            // Set action URL pada form tersembunyi
+            document.getElementById('deleteSingleForm').action = url;
+            // Update teks agar user tahu soal nomor berapa yang dihapus
+            document.getElementById('deleteSingleText').innerText = 'soal nomor ' + number;
+            // Tampilkan modal
+            document.getElementById('deleteSingleModal').classList.remove('hidden');
+        }
+        function submitDeleteSingleForm() {
+            document.getElementById('deleteSingleForm').submit();
         }
     </script>
 @endsection
